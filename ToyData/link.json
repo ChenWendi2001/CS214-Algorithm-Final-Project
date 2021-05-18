@@ -2,7 +2,7 @@
     "link": [
         {
             "start": "DC1",
-            "bandwideth": [
+            "bandwidth": [
                 1200,
                 80,
                 150,
@@ -20,7 +20,7 @@
         },
         {
             "start": "DC2",
-            "bandwideth": [
+            "bandwidth": [
                 100,
                 1200,
                 120,
@@ -38,7 +38,7 @@
         },
         {
             "start": "DC3",
-            "bandwideth": [
+            "bandwidth": [
                 80,
                 100,
                 1200,
@@ -56,7 +56,7 @@
         },
         {
             "start": "DC4",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 150,
                 180,
@@ -74,7 +74,7 @@
         },
         {
             "start": "DC5",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 200,
                 40,
@@ -92,7 +92,7 @@
         },
         {
             "start": "DC6",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 -1,
                 -1,
@@ -110,7 +110,7 @@
         },
         {
             "start": "DC7",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 -1,
                 -1,
@@ -128,7 +128,7 @@
         },
         {
             "start": "DC8",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 -1,
                 300,
@@ -146,7 +146,7 @@
         },
         {
             "start": "DC9",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 -1,
                 -1,
@@ -164,7 +164,7 @@
         },
         {
             "start": "DC10",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 -1,
                 -1,
@@ -182,7 +182,7 @@
         },
         {
             "start": "DC11",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 -1,
                 400,
@@ -200,7 +200,7 @@
         },
         {
             "start": "DC12",
-            "bandwideth": [
+            "bandwidth": [
                 500,
                 -1,
                 -1,
@@ -218,7 +218,7 @@
         },
         {
             "start": "DC13",
-            "bandwideth": [
+            "bandwidth": [
                 -1,
                 -1,
                 -1,
