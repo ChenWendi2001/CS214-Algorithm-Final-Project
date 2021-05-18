@@ -1,0 +1,23 @@
+{
+    "spellright.language": [
+        "en"
+    ],
+    "spellright.documentTypes": [
+        "markdown",
+        "plaintext",
+        "ignore"
+    ],
+    "python.pythonPath": "E:\\Anaconda3\\envs\\python37\\python.exe",
+    "spellright.parserByClass": {
+        "ignore": {
+            "parser": "plain"
+        }
+    },
+    "files.associations": {
+        "iterator": "cpp",
+        "xutility": "cpp",
+        "iostream": "cpp",
+        "utility": "cpp",
+        "vector": "cpp"
+    }
+}
