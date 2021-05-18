@@ -1,3 +1,6 @@
+#ifndef __SCHEDULER_HPP__
+#define __SCHEDULER_HPP__
+
 #include "common.hpp"
 
 class Scheduler
@@ -20,3 +23,5 @@ public:
     {
     }
 };
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef __DAG_HPP__
+#define __DAG_HPP__
+
 #include "common.hpp"
 
 class DAG
@@ -16,3 +19,5 @@ public:
     {
     }
 };
+
+#endif

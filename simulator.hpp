@@ -1,3 +1,6 @@
+#ifndef __SIMULATOR_HPP__
+#define __SIMULATOR_HPP__
+
 #include "common.hpp"
 
 class Simulator
@@ -24,3 +27,5 @@ public:
     {
     }
 };
+
+#endif
