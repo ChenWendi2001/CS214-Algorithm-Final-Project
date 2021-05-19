@@ -13,6 +13,7 @@ private:
     shared_ptr<Graph> graph;
     //tasks are available but have not been scheduled
     class compare{
+    public:
         bool operator()(const Arrange&a,
         const Arrange&b){
             return a.first<b.first;
@@ -34,7 +35,7 @@ private:
 
     }
 public:
-
+    Scheduler(shared_ptr<Graph> g) :graph(g) {}
     // get new tasks from DAG
     void sumbitTasks(unordered_set<string> tasks)
     {
