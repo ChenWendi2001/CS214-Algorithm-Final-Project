@@ -42,8 +42,11 @@ public:
     // e.g. {"tA1","tA2"}
     //  put these tasks to scheduler
     vector<string> getSubmit()
-    {
-        return vector<string>(queue.begin(),queue.end());
+    {   
+        vector<string> temp(queue.begin(),queue.end());
+        queue.clear();
+        std::cout<<queue.size();
+        return temp;
     }
 
     void init(shared_ptr<Graph> outergraph)
