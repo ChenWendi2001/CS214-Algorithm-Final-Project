@@ -16,6 +16,31 @@ int main(){
 void init_data(){
     graph = graph = make_shared<Graph>();
     //
+    //initialize run_time
+    //
+    json job;
+    std::ifstream job_file("./ToyData/job_list.json");
+    job_file>>job;
+
+    int num_of_jobs = job["job"].size();
+    for(int i = 0;i<num_of_jobs;++i){
+        int num_of_task = job["job"][i]["task"].size();
+        for(int j = 0;j<num_of_task;++j){
+            graph->run_time[job["job"][i]["task"][j]["name"]] = job["job"][i]["task"][j]["time"];
+        }
+    }
+
+    //Debug code
+
+    // for(int i = 0;i<num_of_jobs;++i){
+    //     int num_of_task = job["job"][i]["task"].size();
+    //     for(int j = 0;j<num_of_task;++j){
+    //         std::cout<<job["job"][i]["task"][j]["name"]<<":" <<graph->run_time[job["job"][i]["task"][j]["name"]];
+    //         std::cout<<"\n";
+    //     }
+    // }
+
+    //
     //initialize graph->resources
     //
     json DC;
@@ -24,17 +49,17 @@ void init_data(){
     
     int num_of_dc = DC["DC"].size();
     for(int i = 0;i<num_of_dc;++i){
-        graph->resources[DC["DC"][i]["name"]].insert(DC["DC"][i]["data"].begin(),DC["DC"][i]["data"].end());
+        int num_of_resource = DC["DC"][i]["data"].size();
+        for(int j = 0;j<num_of_resource;++j)
+            graph->resource_loc[DC["DC"][i]["data"][j]] = DC["DC"][i]["name"];
     }
 
     //Debug code
 
     // for(int i = 0;i<num_of_dc;++i){
-    //     auto set = graph->resources[DC["DC"][i]["name"]];
-    //     for(auto iter = set.begin();iter!=set.end();++iter){
-    //         std::cout<<*iter<<"\t";
-    //     }
-    //     std::cout<<std::endl;
+    //     int num_of_resource = DC["DC"][i]["data"].size();
+    //     for(int j = 0;j<num_of_resource;++j)
+    //         std::cout<<DC["DC"][i]["data"][j]<<":"<<graph->resource_loc[DC["DC"][i]["data"][j]]<<'\n';
     // }
 
 

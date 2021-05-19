@@ -24,6 +24,8 @@ using std::unordered_map;
 using std::unordered_set;
 using std::vector;
 
+void printError(string msg);
+
 struct Graph
 {
     // task's run time
