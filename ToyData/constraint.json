@@ -1,0 +1,104 @@
+{
+    "constraint": [
+        {
+            "start": "tB1",
+            "end": "tB2"
+        },
+        {
+            "start": "tC1",
+            "end": "tC2"
+        },
+        {
+            "start": "tC1",
+            "end": "tC3"
+        },
+        {
+            "start": "tC2",
+            "end": "tC3"
+        },
+        {
+            "start": "tD1",
+            "end": "tD3"
+        },
+        {
+            "start": "tD2",
+            "end": "tD3"
+        },
+        {
+            "start": "tD2",
+            "end": "tD4"
+        },
+        {
+            "start": "tD3",
+            "end": "tD5"
+        },
+        {
+            "start": "tE1",
+            "end": "tE2"
+        },
+        {
+            "start": "tE1",
+            "end": "tE3"
+        },
+        {
+            "start": "tE2",
+            "end": "tE4"
+        },
+        {
+            "start": "tE3",
+            "end": "tE5"
+        },
+        {
+            "start": "tE3",
+            "end": "tE6"
+        },
+        {
+            "start": "tE5",
+            "end": "tE6"
+        },
+        {
+            "start": "tF1",
+            "end": "tF2"
+        },
+        {
+            "start": "tF1",
+            "end": "tF3"
+        },
+        {
+            "start": "tF1",
+            "end": "tF4"
+        },
+        {
+            "start": "tF2",
+            "end": "tF5"
+        },
+        {
+            "start": "tF3",
+            "end": "tF5"
+        },
+        {
+            "start": "tF4",
+            "end": "tF6"
+        },
+        {
+            "start": "tF5",
+            "end": "tF7"
+        },
+        {
+            "start": "tF5",
+            "end": "tF8"
+        },
+        {
+            "start": "tF6",
+            "end": "tF8"
+        },
+        {
+            "start": "tF7",
+            "end": "tF9"
+        },
+        {
+            "start": "tF8",
+            "end": "tF9"
+        }
+    ]
+}

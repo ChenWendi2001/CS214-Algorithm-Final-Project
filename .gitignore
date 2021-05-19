@@ -25,3 +25,9 @@
 *.zip
 *.7z
 *.rar
+
+## temporary file of CodeRunner
+tempCodeRunnerFile.cpp
+
+## configuration file of VS Code
+.vscode

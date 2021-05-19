@@ -1,0 +1,496 @@
+{
+    "job": [
+        {
+            "name": "A",
+            "task": [
+                {
+                    "name": "tA1",
+                    "resource": [
+                        {
+                            "name": "A1",
+                            "size": 150
+                        },
+                        {
+                            "name": "A2",
+                            "size": 180
+                        }
+                    ],
+                    "time": 1.5
+                },
+                {
+                    "name": "tA2",
+                    "resource": [
+                        {
+                            "name": "A1",
+                            "size": 150
+                        },
+                        {
+                            "name": "A2",
+                            "size": 180
+                        }
+                    ],
+                    "time": 1.5
+                }
+            ]
+        },
+        {
+            "name": "B",
+            "task": [
+                {
+                    "name": "tB1",
+                    "resource": [
+                        {
+                            "name": "B1",
+                            "size": 180
+                        },
+                        {
+                            "name": "B2",
+                            "size": 180
+                        }
+                    ],
+                    "time": 2.5
+                },
+                {
+                    "name": "tB2",
+                    "resource": [
+                        {
+                            "name": "B1",
+                            "size": 200
+                        },
+                        {
+                            "name": "B2",
+                            "size": 300
+                        },
+                        {
+                            "name": "tB1",
+                            "size": 100
+                        }
+                    ],
+                    "time": 1
+                }
+            ]
+        },
+        {
+            "name": "C",
+            "task": [
+                {
+                    "name": "tC1",
+                    "resource": [
+                        {
+                            "name": "C1",
+                            "size": 50
+                        },
+                        {
+                            "name": "C2",
+                            "size": 50
+                        }
+                    ],
+                    "time": 4
+                },
+                {
+                    "name": "tC2",
+                    "resource": [
+                        {
+                            "name": "C2",
+                            "size": 70
+                        },
+                        {
+                            "name": "tC1",
+                            "size": 30
+                        }
+                    ],
+                    "time": 1
+                },
+                {
+                    "name": "tC3",
+                    "resource": [
+                        {
+                            "name": "C1",
+                            "size": 30
+                        },
+                        {
+                            "name": "tC1",
+                            "size": 20
+                        },
+                        {
+                            "name": "tC2",
+                            "size": 20
+                        }
+                    ],
+                    "time": 2
+                }
+            ]
+        },
+        {
+            "name": "D",
+            "task": [
+                {
+                    "name": "tD1",
+                    "resource": [
+                        {
+                            "name": "D1",
+                            "size": 100
+                        },
+                        {
+                            "name": "D2",
+                            "size": 200
+                        },
+                        {
+                            "name": "D3",
+                            "size": 300
+                        }
+                    ],
+                    "time": 2
+                },
+                {
+                    "name": "tD2",
+                    "resource": [
+                        {
+                            "name": "D1",
+                            "size": 200
+                        },
+                        {
+                            "name": "D2",
+                            "size": 300
+                        },
+                        {
+                            "name": "D3",
+                            "size": 100
+                        }
+                    ],
+                    "time": 2
+                },
+                {
+                    "name": "tD3",
+                    "resource": [
+                        {
+                            "name": "D2",
+                            "size": 50
+                        },
+                        {
+                            "name": "tD1",
+                            "size": 200
+                        },
+                        {
+                            "name": "tD2",
+                            "size": 200
+                        }
+                    ],
+                    "time": 1.5
+                },
+                {
+                    "name": "tD4",
+                    "resource": [
+                        {
+                            "name": "D1",
+                            "size": 100
+                        },
+                        {
+                            "name": "D3",
+                            "size": 100
+                        },
+                        {
+                            "name": "tD2",
+                            "size": 200
+                        }
+                    ],
+                    "time": 1
+                },
+                {
+                    "name": "tD5",
+                    "resource": [
+                        {
+                            "name": "D2",
+                            "size": 200
+                        },
+                        {
+                            "name": "tD3",
+                            "size": 200
+                        }
+                    ],
+                    "time": 1
+                }
+            ]
+        },
+        {
+            "name": "E",
+            "task": [
+                {
+                    "name": "tE1",
+                    "resource": [
+                        {
+                            "name": "E1",
+                            "size": 60
+                        },
+                        {
+                            "name": "E2",
+                            "size": 80
+                        },
+                        {
+                            "name": "E3",
+                            "size": 120
+                        }
+                    ],
+                    "time": 4
+                },
+                {
+                    "name": "tE2",
+                    "resource": [
+                        {
+                            "name": "E2",
+                            "size": 90
+                        },
+                        {
+                            "name": "E4",
+                            "size": 120
+                        },
+                        {
+                            "name": "tE1",
+                            "size": 150
+                        }
+                    ],
+                    "time": 2
+                },
+                {
+                    "name": "tE3",
+                    "resource": [
+                        {
+                            "name": "E1",
+                            "size": 30
+                        },
+                        {
+                            "name": "E3",
+                            "size": 50
+                        },
+                        {
+                            "name": "tE1",
+                            "size": 80
+                        }
+                    ],
+                    "time": 3
+                },
+                {
+                    "name": "tE4",
+                    "resource": [
+                        {
+                            "name": "E2",
+                            "size": 160
+                        },
+                        {
+                            "name": "tE2",
+                            "size": 100
+                        }
+                    ],
+                    "time": 2
+                },
+                {
+                    "name": "tE5",
+                    "resource": [
+                        {
+                            "name": "E3",
+                            "size": 160
+                        },
+                        {
+                            "name": "E4",
+                            "size": 180
+                        },
+                        {
+                            "name": "tE3",
+                            "size": 90
+                        }
+                    ],
+                    "time": 1
+                },
+                {
+                    "name": "tE6",
+                    "resource": [
+                        {
+                            "name": "E1",
+                            "size": 50
+                        },
+                        {
+                            "name": "tE3",
+                            "size": 50
+                        },
+                        {
+                            "name": "tE5",
+                            "size": 180
+                        }
+                    ],
+                    "time": 3
+                }
+            ]
+        },
+        {
+            "name": "F",
+            "task": [
+                {
+                    "name": "tF1",
+                    "resource": [
+                        {
+                            "name": "F1",
+                            "size": 300
+                        }
+                    ],
+                    "time": 4
+                },
+                {
+                    "name": "tF2",
+                    "resource": [
+                        {
+                            "name": "F2",
+                            "size": 100
+                        },
+                        {
+                            "name": "tF1",
+                            "size": 100
+                        }
+                    ],
+                    "time": 2
+                },
+                {
+                    "name": "tF3",
+                    "resource": [
+                        {
+                            "name": "F3",
+                            "size": 200
+                        },
+                        {
+                            "name": "tF1",
+                            "size": 120
+                        }
+                    ],
+                    "time": 1
+                },
+                {
+                    "name": "tF4",
+                    "resource": [
+                        {
+                            "name": "F4",
+                            "size": 100
+                        },
+                        {
+                            "name": "tF1",
+                            "size": 100
+                        }
+                    ],
+                    "time": 3
+                },
+                {
+                    "name": "tF5",
+                    "resource": [
+                        {
+                            "name": "F1",
+                            "size": 50
+                        },
+                        {
+                            "name": "F2",
+                            "size": 50
+                        },
+                        {
+                            "name": "F3",
+                            "size": 50
+                        },
+                        {
+                            "name": "tF2",
+                            "size": 100
+                        },
+                        {
+                            "name": "tF3",
+                            "size": 150
+                        }
+                    ],
+                    "time": 1
+                },
+                {
+                    "name": "tF6",
+                    "resource": [
+                        {
+                            "name": "F1",
+                            "size": 70
+                        },
+                        {
+                            "name": "F4",
+                            "size": 70
+                        },
+                        {
+                            "name": "tF4",
+                            "size": 90
+                        }
+                    ],
+                    "time": 1.5
+                },
+                {
+                    "name": "tF7",
+                    "resource": [
+                        {
+                            "name": "F3",
+                            "size": 100
+                        },
+                        {
+                            "name": "F5",
+                            "size": 200
+                        },
+                        {
+                            "name": "tF5",
+                            "size": 300
+                        }
+                    ],
+                    "time": 2.5
+                },
+                {
+                    "name": "tF8",
+                    "resource": [
+                        {
+                            "name": "F2",
+                            "size": 150
+                        },
+                        {
+                            "name": "F5",
+                            "size": 100
+                        },
+                        {
+                            "name": "tF5",
+                            "size": 500
+                        },
+                        {
+                            "name": "tF6",
+                            "size": 50
+                        }
+                    ],
+                    "time": 2
+                },
+                {
+                    "name": "tF9",
+                    "resource": [
+                        {
+                            "name": "F1",
+                            "size": 250
+                        },
+                        {
+                            "name": "F3",
+                            "size": 30
+                        },
+                        {
+                            "name": "F4",
+                            "size": 80
+                        },
+                        {
+                            "name": "F5",
+                            "size": 200
+                        },
+                        {
+                            "name": "tF7",
+                            "size": 200
+                        },
+                        {
+                            "name": "tF8",
+                            "size": 200
+                        }
+                    ],
+                    "time": 3.5
+                }
+            ]
+        }
+    ]
+}

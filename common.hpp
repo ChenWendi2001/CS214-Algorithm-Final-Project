@@ -24,19 +24,28 @@ using std::unordered_map;
 using std::unordered_set;
 using std::vector;
 
+void printError(string msg);
+
 struct Graph
 {
+    //constraint
+    //e.g, {"tB1","tB2"}
+    // tB2 need the result of tB1
+    vector<pair<string,string>> constraint;
+
+
     // task's run time
     // e.g. {"tA1", 2}
     //  tA1 takes 2s to execute
     unordered_map<string, double> run_time;
 
-    // resources required by "txx"
-    // e.g. require["tA1"]={"A1","A2"}
-    //  tA1 needs A1 and A2
+    // resources required by "txx"
+    // e.g. require["tA1"]={{"A1",50},{"A2",100}}
+    //  tA1 needs A1 and A2
     unordered_map<string,
-                  unordered_set<string>>
+                  vector<pair<string,double>>>
         require;
+
 
     // location of resource "xx"
     // e.g. resource_loc["A1"]=DC1
