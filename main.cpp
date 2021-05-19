@@ -16,7 +16,7 @@ int main(){
 void init_data(){
     graph = graph = make_shared<Graph>();
     //
-    //initialize run_time
+    //initialize run_time and require
     //
     json job;
     std::ifstream job_file("./ToyData/job_list.json");
@@ -27,6 +27,12 @@ void init_data(){
         int num_of_task = job["job"][i]["task"].size();
         for(int j = 0;j<num_of_task;++j){
             graph->run_time[job["job"][i]["task"][j]["name"]] = job["job"][i]["task"][j]["time"];
+            int num_of_resource = job["job"][i]["task"][j]["resource"].size();
+            for(int k = 0;k<num_of_resource;++k){
+                graph->require[job["job"][i]["task"][j]["name"]].push_back(
+                    std::make_pair(job["job"][i]["task"][j]["resource"][k]["name"],job["job"][i]["task"][j]["resource"][k]["size"])
+                 );
+            }
         }
     }
 
@@ -37,8 +43,15 @@ void init_data(){
     //     for(int j = 0;j<num_of_task;++j){
     //         std::cout<<job["job"][i]["task"][j]["name"]<<":" <<graph->run_time[job["job"][i]["task"][j]["name"]];
     //         std::cout<<"\n";
+    //         int num_of_resource = job["job"][i]["task"][j]["resource"].size();
+    //         for(int k = 0;k<num_of_resource;++k){
+    //             for(auto iter = graph->require[job["job"][i]["task"][j]["name"]].begin();iter !=graph->require[job["job"][i]["task"][j]["name"]].end();iter++)
+    //                 std::cout<<(*iter).first<<" "<<(*iter).second<<"\n";
+    //         }
     //     }
     // }
+
+
 
     //
     //initialize graph->resources
