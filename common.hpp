@@ -28,6 +28,12 @@ void printError(string msg);
 
 struct Graph
 {
+    //constraint
+    //e.g, {"tB1","tB2"}
+    // tB2 need the result of tB1
+    vector<pair<string,string>> constraint;
+
+
     // task's run time
     // e.g. {"tA1", 2}
     //  tA1 takes 2s to execute

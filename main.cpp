@@ -16,6 +16,21 @@ int main(){
 void init_data(){
     graph = graph = make_shared<Graph>();
     //
+    //initailize constraint
+    //
+    json constraint;
+    std::ifstream constraint_file("./ToyData/constraint.json");
+    constraint_file>>constraint;
+    for(auto iter = constraint["constraint"].begin();iter!=constraint["constraint"].end();iter++){
+        graph->constraint.push_back(std::make_pair<string,string>((*iter)["start"],(*iter)["end"]));
+    }
+
+    //Debug code
+    // for(auto iter = graph->constraint.begin();iter!=graph->constraint.end();iter++){
+    //     std::cout<<(*iter).first<<" "<<(*iter).second<<"\n";
+    // }
+
+    //
     //initialize run_time and require
     //
     json job;
