@@ -5,7 +5,7 @@
             "task": [
                 {
                     "name": "tA1",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "A1",
                             "size": 150
@@ -19,7 +19,7 @@
                 },
                 {
                     "name": "tA2",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "A1",
                             "size": 150
@@ -38,7 +38,7 @@
             "task": [
                 {
                     "name": "tB1",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "B1",
                             "size": 180
@@ -52,7 +52,7 @@
                 },
                 {
                     "name": "tB2",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "B1",
                             "size": 200
@@ -75,7 +75,7 @@
             "task": [
                 {
                     "name": "tC1",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "C1",
                             "size": 50
@@ -89,7 +89,7 @@
                 },
                 {
                     "name": "tC2",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "C2",
                             "size": 70
@@ -103,7 +103,7 @@
                 },
                 {
                     "name": "tC3",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "C1",
                             "size": 30
@@ -126,7 +126,7 @@
             "task": [
                 {
                     "name": "tD1",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "D1",
                             "size": 100
@@ -144,7 +144,7 @@
                 },
                 {
                     "name": "tD2",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "D1",
                             "size": 200
@@ -162,7 +162,7 @@
                 },
                 {
                     "name": "tD3",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "D2",
                             "size": 50
@@ -180,7 +180,7 @@
                 },
                 {
                     "name": "tD4",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "D1",
                             "size": 100
@@ -198,7 +198,7 @@
                 },
                 {
                     "name": "tD5",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "D2",
                             "size": 200
@@ -217,7 +217,7 @@
             "task": [
                 {
                     "name": "tE1",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "E1",
                             "size": 60
@@ -235,7 +235,7 @@
                 },
                 {
                     "name": "tE2",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "E2",
                             "size": 90
@@ -253,7 +253,7 @@
                 },
                 {
                     "name": "tE3",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "E1",
                             "size": 30
@@ -271,7 +271,7 @@
                 },
                 {
                     "name": "tE4",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "E2",
                             "size": 160
@@ -285,7 +285,7 @@
                 },
                 {
                     "name": "tE5",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "E3",
                             "size": 160
@@ -303,7 +303,7 @@
                 },
                 {
                     "name": "tE6",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "E1",
                             "size": 50
@@ -326,7 +326,7 @@
             "task": [
                 {
                     "name": "tF1",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F1",
                             "size": 300
@@ -336,7 +336,7 @@
                 },
                 {
                     "name": "tF2",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F2",
                             "size": 100
@@ -350,7 +350,7 @@
                 },
                 {
                     "name": "tF3",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F3",
                             "size": 200
@@ -364,7 +364,7 @@
                 },
                 {
                     "name": "tF4",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F4",
                             "size": 100
@@ -378,7 +378,7 @@
                 },
                 {
                     "name": "tF5",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F1",
                             "size": 50
@@ -404,7 +404,7 @@
                 },
                 {
                     "name": "tF6",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F1",
                             "size": 70
@@ -422,7 +422,7 @@
                 },
                 {
                     "name": "tF7",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F3",
                             "size": 100
@@ -440,7 +440,7 @@
                 },
                 {
                     "name": "tF8",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F2",
                             "size": 150
@@ -462,7 +462,7 @@
                 },
                 {
                     "name": "tF9",
-                    "resorce": [
+                    "resource": [
                         {
                             "name": "F1",
                             "size": 250
