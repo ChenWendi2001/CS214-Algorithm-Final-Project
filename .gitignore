@@ -28,3 +28,6 @@
 
 ## temporary file of CodeRunner
 tempCodeRunnerFile.cpp
+
+## configuration file of VS Code
+.vscode
