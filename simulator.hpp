@@ -16,11 +16,6 @@ private:
     // e.g. {4.5, "tA1"}
     priority_queue<pair<double, string>> Q;
 
-    // task's run time
-    // e.g. {"tA1", 2}
-    //  tA1 takes 2s to execute
-    unordered_map<string, double> run_time;
-
     // location of task
     // e.g. locates["tA1"]="DC1"
     unordered_map<string, string> locates;
@@ -42,19 +37,6 @@ public:
             ret &= slot.second.empty();
         }
         return ret;
-    }
-
-    // only initialized once
-    // read task's run time from file
-    void readTaskTime(string file_name = "task_time.txt")
-    {
-        std::ifstream fin(file_name);
-        if (!fin.is_open())
-            printError(file_name + " not found!");
-        string name;
-        double t;
-        while (fin >> name >> t)
-            run_time[name] = t;
     }
 
     // only initialized once
@@ -95,7 +77,7 @@ public:
             locates[task] = DC;
             double finish_time = current_time;
             finish_time += it.first;
-            finish_time += run_time[task];
+            finish_time += graph->run_time[task];
             Q.push(make_pair(finish_time, task));
         }
     }
