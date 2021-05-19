@@ -26,11 +26,22 @@ using std::vector;
 
 struct Graph
 {
-    // resources held by "DCi"
-    // e.g. resources["DC1"]={"A1","A2","A3"}
+    // task's run time
+    // e.g. {"tA1", 2}
+    //  tA1 takes 2s to execute
+    unordered_map<string, double> run_time;
+
+    // resources required by "txx"
+    // e.g. require["tA1"]={"A1","A2"}
+    //  tA1 needs A1 and A2
     unordered_map<string,
                   unordered_set<string>>
-        resources;
+        require;
+
+    // location of resource "xx"
+    // e.g. resource_loc["A1"]=DC1
+    //  resource A1 is put in DC1
+    unordered_map<string, string> resource_loc;
 
     // adjacent matrix
     // e.g. edges["DC1"]["DC2"]=1/100
@@ -45,6 +56,19 @@ struct Graph
     unordered_map<string,
                   pair<int, unordered_set<string>>>
         slots;
+
+    // only initialized once
+    // read task's run time from file
+    void readTaskTime(string file_name = "task_time.txt")
+    {
+        std::ifstream fin(file_name);
+        if (!fin.is_open())
+            printError(file_name + " not found!");
+        string name;
+        double t;
+        while (fin >> name >> t)
+            run_time[name] = t;
+    }
 
     void printStatus()
     {

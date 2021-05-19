@@ -24,11 +24,10 @@ int main()
         std::make_pair<int, unordered_set<string>>(
             5, {"tA2"});
     graph->printStatus();
+    graph->readTaskTime();
 
     sim.updateGraph(graph);
     sim.printStatus();
-
-    sim.readTaskTime();
     std::cout << sim.getTime() << std::endl;
 
     vector<pair<double,
