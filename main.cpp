@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "json.hpp"
 #include <fstream>
+#include "DAG.hpp"
 
 using json = nlohmann::json;
 
@@ -10,6 +11,13 @@ void init_data();
 
 int main(){
     init_data();
+    DAG dag;
+    dag.init(graph);
+    //Debug code
+    // vector<string> temp = dag.getSubmit();
+    // for(auto iter = temp.begin();iter!=temp.end();iter++){
+    //     std::cout<<*iter<<" ";
+    // }
     return 0;
 }
 
