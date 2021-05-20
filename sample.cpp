@@ -39,7 +39,7 @@ int main()
 
     if (!sim.isEmpty())
     {
-        sim.tickTime(); // forward time
+        sim.forwardTime(); // forward time
 
         auto finished = sim.getFinished();
         for (const auto &it : finished)
