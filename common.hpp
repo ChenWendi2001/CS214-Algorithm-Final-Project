@@ -31,8 +31,7 @@ struct Graph
     //constraint
     //e.g, {"tB1","tB2"}
     // tB2 need the result of tB1
-    vector<pair<string,string>> constraint;
-
+    vector<pair<string, string>> constraint;
 
     // task's run time
     // e.g. {"tA1", 2}
@@ -43,9 +42,8 @@ struct Graph
     // e.g. require["tA1"]={{"A1",50},{"A2",100}}
     //  tA1 needs A1 and A2
     unordered_map<string,
-                  vector<pair<string,double>>>
+                  vector<pair<string, double>>>
         require;
-
 
     // location of resource "xx"
     // e.g. resource_loc["A1"]=DC1
