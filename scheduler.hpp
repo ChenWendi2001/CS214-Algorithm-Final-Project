@@ -16,7 +16,7 @@ private:
     public:
         bool operator()(const Arrange&a,
         const Arrange&b){
-            return a.first<b.first;
+            return a.first>b.first;
         }
     };
     unordered_set<string> ready_queue;
@@ -29,7 +29,7 @@ private:
                 string resource_position=graph->resource_loc[resource.first];
                 double bandwidth=(graph->edges)[resource_position][which_slot];
                 double cost=resource.second/bandwidth;
-                if(cost>max)cost=max;
+                if(cost>max)max=cost;
             }
         return max;
 
@@ -76,6 +76,7 @@ public:
                     ready_queue.erase(assignment.second.first);
                     //pop from ready_queue
                     assignments.push_back(assignment);
+                    graph->slots[assignment.second.second].second.insert(assignment.second.first);
                     return assignments;
                 }
             }
