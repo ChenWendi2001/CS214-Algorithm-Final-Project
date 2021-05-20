@@ -96,7 +96,7 @@ public:
         // get finished tasks from Q
         static const double eps = 1e-8;
         while (!Q.empty() &&
-               fabs(Q.top().first - current_time) < eps)
+               Q.top().first < current_time + eps)
         {
             string task = Q.top().second;
             graph->slots[locates[task]].second.erase(task);
