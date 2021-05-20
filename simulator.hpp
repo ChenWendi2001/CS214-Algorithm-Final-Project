@@ -50,15 +50,21 @@ public:
         return current_time;
     }
 
+    // current_time += t
+    void tickTime(double t)
+    {
+        current_time += t;
+    }
+
     // forward time to next completion
-    void tickTime()
+    void forwardTime()
     {
         current_time = Q.top().first;
     }
 
     // get scheduled tasks from scheduler
     // e.g. {{4,{"DC1","tA1"}}}
-    //  assign tA1 to DC1, takes 4s to transport data
+    //  assign tA1 to DC1, takes 4s to transfer data
     void updateScheduled(vector<pair<double,
                                      pair<string, string>>>
                              scheduled_tasks)
@@ -90,7 +96,7 @@ public:
         // get finished tasks from Q
         static const double eps = 1e-8;
         while (!Q.empty() &&
-               fabs(Q.top().first - current_time) < eps)
+               Q.top().first < current_time + eps)
         {
             string task = Q.top().second;
             graph->slots[locates[task]].second.erase(task);
