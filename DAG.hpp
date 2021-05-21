@@ -33,13 +33,14 @@ public:
         int size = finished_tasks.size();
         for (int i = 0; i < size; ++i)
         {
+            count.erase(finished_tasks[i].first);
             for (auto iter = DAG[finished_tasks[i].first].begin(); iter != DAG[finished_tasks[i].first].end(); iter++)
             {
                 count[*iter]--;
                 if (count[*iter] == 0)
                 {
                     queue.insert(*iter);
-                    count.erase(*iter);
+                    //count.erase(*iter);
                 }
             }
             DAG.erase(finished_tasks[i].first);
@@ -79,8 +80,8 @@ public:
                 need_del.insert(iter->first);
             }
         }
-        for (const auto &it : need_del)
-            count.erase(it);
+        // for (const auto &it : need_del)
+        //     count.erase(it);
 
         //Debug code
         // for(auto iter = count.begin();iter!=count.end();iter++){
