@@ -4,11 +4,13 @@
 #include "common.hpp"
 #include <queue>
 using std::priority_queue;
-typedef pair<double, pair<string, string>> Arrange;
-// pair<transmit time(2),pair<task(tA1),slots(DC1)>>
+
 class Scheduler
 {
 private:
+    typedef pair<double, pair<string, string>> Arrange;
+    // pair<transmit time(2),pair<task(tA1),slots(DC1)>>
+
     //the graph pointer
     shared_ptr<Graph> graph;
     //tasks are available but have not been scheduled
@@ -39,6 +41,35 @@ private:
         return max;
     }
 
+    // only return one
+    vector<Arrange> getGreedy()
+    {
+        vector<Arrange> assignments;
+        Arrange assignment;
+        while (!mapping.empty())
+        {
+            assignment = mapping.top();
+            mapping.pop();
+            string task = assignment.second.second;
+            string DC = assignment.second.first;
+
+            if (ready_queue.find(task) != ready_queue.end())
+            { //tasks in ready_queue
+                if (graph->slots[DC].first != graph->slots[DC].second.size())
+                {
+                    //slots has capacity
+
+                    //arrange successfully
+                    ready_queue.erase(task);
+                    //pop from ready_queue
+                    assignments.push_back(assignment);
+                    return assignments;
+                }
+            }
+        }
+        return assignments; //empty,exceptions
+    }
+
 public:
     Scheduler(shared_ptr<Graph> g) : graph(g) {}
     // get new tasks from DAG
@@ -56,8 +87,8 @@ public:
                 { //capacity>0
                     Arrange this_method;
                     this_method.first = count_time(each_task, slot->first);
-                    this_method.second.first = each_task;
-                    this_method.second.second = slot->first;
+                    this_method.second.second = each_task;
+                    this_method.second.first = slot->first;
                     mapping.push(this_method);
                 }
             }
@@ -66,33 +97,11 @@ public:
 
     // update current resources from simulator
     // schedule tasks to slots
-    // e.g. {{"DC1","tA1"}}
-    //  assign tA1 to DC1
+    // e.g. {{4,{"DC1","tA1"}}}
+    //  assign tA1 to DC1, takes 4s to transfer data
     vector<Arrange> getScheduled()
     {
-        vector<Arrange> assignments;
-        Arrange assignment;
-        while (!mapping.empty())
-        {
-            assignment = mapping.top();
-            mapping.pop();
-            if (ready_queue.find(assignment.second.first) != ready_queue.end())
-            { //tasks in ready_queue
-                if (graph->slots[assignment.second.second].first != 0)
-                {
-                    //slots has capacity
-
-                    --graph->slots[assignment.second.second].first;
-                    //arrange successfully
-                    ready_queue.erase(assignment.second.first);
-                    //pop from ready_queue
-                    assignments.push_back(assignment);
-                    graph->slots[assignment.second.second].second.insert(assignment.second.first);
-                    return assignments;
-                }
-            }
-        }
-        return assignments; //empty,exceptions
+        return getGreedy();
     }
 };
 

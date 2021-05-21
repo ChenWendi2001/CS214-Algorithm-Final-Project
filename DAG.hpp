@@ -24,28 +24,34 @@ unordered_map <string,int> count;
 public:
     // update DAG with finished tasks
     //  from simulator
-    void updateDAG(vector<string> finished_tasks)
+
+    bool if_finished(){
+        return count.size()==0;
+    }
+
+    void updateDAG(vector<std::pair<string,double>> finished_tasks)
     {
         int size = finished_tasks.size();
         for(int i = 0;i<size;++i){
-            for(auto iter = DAG[finished_tasks[i]].begin();iter!=DAG[finished_tasks[i]].end();iter++){
+            for(auto iter = DAG[finished_tasks[i].first].begin();iter!=DAG[finished_tasks[i].first].end();iter++){
                 count[*iter] --;
                 if(count[*iter]==0){
                     queue.insert(*iter);
+                    count.erase(*iter);
                 }
             }
-            DAG.erase(finished_tasks[i]);
+            DAG.erase(finished_tasks[i].first);
         }
     }
 
     // return new tasks that can be submit
     // e.g. {"tA1","tA2"}
     //  put these tasks to scheduler
-    vector<string> getSubmit()
+    unordered_set<string>  getSubmit()
     {   
-        vector<string> temp(queue.begin(),queue.end());
+        unordered_set<string>  temp(queue.begin(),queue.end());
         queue.clear();
-        std::cout<<queue.size();
+        //std::cout<<queue.size();
         return temp;
     }
 
