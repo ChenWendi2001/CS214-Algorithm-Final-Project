@@ -14,7 +14,8 @@ private:
 
     // finish time and name
     // e.g. {4.5, "tA1"}
-    priority_queue<pair<double, string>> Q;
+    typedef pair<double, string> Task;
+    priority_queue<Task, vector<Task>, std::greater<Task>> Q;
 
     // location of task
     // e.g. locates["tA1"]="DC1"
@@ -59,6 +60,8 @@ public:
     // forward time to next completion
     void forwardTime()
     {
+        if (Q.empty())
+            printError("Q is Empty!");
         current_time = Q.top().first;
     }
 
@@ -89,10 +92,10 @@ public:
     }
 
     // get finished tasks and update DAG
-    // e.g. {"tA1","tA2"} when these tasks are finished
-    vector<string> getFinished()
+    // e.g. {{"tA1",9.5},{"tA2",5}} when these tasks are finished
+    vector<pair<string, double>> getFinished()
     {
-        vector<string> finish_tasks;
+        vector<pair<string, double>> finish_tasks;
         // get finished tasks from Q
         static const double eps = 1e-8;
         while (!Q.empty() &&
@@ -100,7 +103,7 @@ public:
         {
             string task = Q.top().second;
             graph->slots[locates[task]].second.erase(task);
-            finish_tasks.emplace_back(task);
+            finish_tasks.emplace_back(make_pair(task, Q.top().first));
             Q.pop();
         }
         return finish_tasks;
