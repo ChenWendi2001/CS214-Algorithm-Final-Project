@@ -34,7 +34,7 @@ private:
         {
             string resource_position = graph->resource_loc[resource.first];
             double bandwidth = (graph->edges)[resource_position][which_slot];
-            double cost = resource.second / bandwidth;
+            double cost = resource.second * bandwidth;
             if (cost > max)
                 max = cost;
         }

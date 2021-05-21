@@ -21,18 +21,20 @@ int main()
     dag.init(graph);
     sim.updateGraph(graph);
     sim.printStatus();
+    int task_cnt = 0;
     while (!dag.if_finished())
     {
+
         scheduler.sumbitTasks(dag.getSubmit());
-        sim.updateScheduled(scheduler.getScheduled());
-        if (!sim.isEmpty())
-        {
-            //sim.printStatus();
-            std::cout<<sim.getTime()<<"\n";
-            sim.forwardTime();
-            auto finished = sim.getFinished();
-            dag.updateDAG(finished);
-        }
+        auto sched = scheduler.getScheduled();
+        sim.updateScheduled(sched);
+
+        //sim.printStatus();
+        sim.forwardTime();
+        std::cout << sim.getTime() << "\n";
+        auto finished = sim.getFinished();
+        task_cnt += finished.size();
+        dag.updateDAG(finished);
     }
 
     //Debug code
