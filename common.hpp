@@ -31,13 +31,15 @@ struct Graph
     //task belongs to which job
     //e.g {"tA1","A"}
     //"tA1" belongs to "A"
+    unordered_map<string, string> which_job;
 
-    unordered_map<string,string> which_job;
+    // job's finish time
+    unordered_map<string, double> finish_time;
 
     //task set of each job
     //e.g {"A",{"tA1","tA2"}}
     // job "A" has two tasks "tA1" and "tA2"
-    unordered_map<string,unordered_set<string>> job_task;
+    unordered_map<string, unordered_set<string>> job_task;
 
     //constraint
     //e.g, {"tB1","tB2"}
@@ -104,6 +106,15 @@ struct Graph
             std::cout << '\n';
         }
         std::cout << std::endl;
+    }
+
+    void printFinishTime()
+    {
+        for (const auto &it : finish_time)
+        {
+            std::cout << it.first << ' '
+                      << std::setprecision(4) << it.second << std::endl;
+        }
     }
 };
 

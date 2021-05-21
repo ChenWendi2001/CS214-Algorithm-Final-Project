@@ -29,14 +29,21 @@ int main()
         auto sched = scheduler.getScheduled();
         sim.updateScheduled(sched);
 
-        sim.printStatus();
+        // sim.printStatus();
         sim.forwardTime();
         // std::cout << sim.getTime() << "\n";
         auto finished = sim.getFinished();
+
+        for (const auto &it : finished)
+            std::cout << it.first << ' ';
+        std::cout << std::endl;
+
         task_cnt += finished.size();
         dag.updateDAG(finished);
     }
     std::cout << sim.getTime() << "\n";
+
+    graph->printFinishTime();
 
     //Debug code
     // vector<string> temp = dag.getSubmit();

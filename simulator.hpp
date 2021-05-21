@@ -103,6 +103,14 @@ public:
         {
             string task = Q.top().second;
             graph->slots[locates[task]].second.erase(task);
+
+            // update job finish time
+            string job = graph->which_job[task];
+            auto &tasks = graph->job_task[job];
+            tasks.erase(task);
+            if (tasks.empty())
+                graph->finish_time[job] = Q.top().first;
+
             finish_tasks.emplace_back(make_pair(task, Q.top().first));
             Q.pop();
         }
