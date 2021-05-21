@@ -29,13 +29,14 @@ int main()
         auto sched = scheduler.getScheduled();
         sim.updateScheduled(sched);
 
-        //sim.printStatus();
+        sim.printStatus();
         sim.forwardTime();
-        std::cout << sim.getTime() << "\n";
+        // std::cout << sim.getTime() << "\n";
         auto finished = sim.getFinished();
         task_cnt += finished.size();
         dag.updateDAG(finished);
     }
+    std::cout << sim.getTime() << "\n";
 
     //Debug code
     // vector<string> temp = dag.getSubmit();
@@ -65,7 +66,7 @@ void init_data()
     // }
 
     //
-    //initialize run_time, require and job_task
+    //initialize run_time, require and job_task, which job
     //
     json job;
     std::ifstream job_file("./ToyData/job_list.json");
@@ -83,6 +84,8 @@ void init_data()
             graph->run_time[task_name] = job["job"][i]["task"][j]["time"];
             //job list
             task.insert(task_name);
+            //which job
+            graph->which_job[task_name] = job["job"][i]["name"];
             int num_of_resource = job["job"][i]["task"][j]["resource"].size();
             for (int k = 0; k < num_of_resource; ++k)
             {

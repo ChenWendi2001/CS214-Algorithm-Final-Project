@@ -9,11 +9,11 @@ class Scheduler
 {
 private:
     typedef pair<double, pair<string, string>> Arrange;
-    // pair<transmit time(2),pair<task(tA1),slots(DC1)>>
-
+    // pair<transmit time(2),pair<task(DC1),slots(tA1)>>
     //the graph pointer
     shared_ptr<Graph> graph;
     //tasks are available but have not been scheduled
+
     class compare
     {
     public:
@@ -24,7 +24,6 @@ private:
         }
     };
     unordered_set<string> ready_queue;
-    priority_queue<Arrange, vector<Arrange>, compare> mapping;
     double count_time(string task_name, string which_slot)
     {
         vector<pair<string, double>> resource_requires =
@@ -41,11 +40,29 @@ private:
         return max;
     }
 
-    // only return one
     vector<Arrange> getGreedy()
     {
+        priority_queue<Arrange, vector<Arrange>, compare> mapping;
+        for (unordered_set<string>::iterator task_iter = ready_queue.begin(); task_iter != ready_queue.end(); ++task_iter)
+        {
+            for (unordered_map<string, pair<int, unordered_set<string>>>::iterator
+                     slot = graph->slots.begin();
+                 slot != graph->slots.end(); ++slot)
+            {
+                if ((slot->second).first != 0)
+                { //capacity>0
+                    Arrange this_method;
+                    this_method.first = count_time(*task_iter, slot->first);
+                    this_method.second.second = *task_iter;
+                    this_method.second.first = slot->first;
+                    mapping.push(this_method);
+                }
+            }
+        }
         vector<Arrange> assignments;
         Arrange assignment;
+        unordered_map<string, int> used;
+        //some slots of graph arranged just now
         while (!mapping.empty())
         {
             assignment = mapping.top();
@@ -55,7 +72,13 @@ private:
 
             if (ready_queue.find(task) != ready_queue.end())
             { //tasks in ready_queue
-                if (graph->slots[DC].first != graph->slots[DC].second.size())
+                int DC_used;
+                unordered_map<string, int>::iterator f = used.find(DC);
+                if (f == used.end())
+                    DC_used = 0;
+                else
+                    DC_used = f->second;
+                if (graph->slots[DC].first > graph->slots[DC].second.size() + DC_used)
                 {
                     //slots has capacity
 
@@ -63,11 +86,18 @@ private:
                     ready_queue.erase(task);
                     //pop from ready_queue
                     assignments.push_back(assignment);
-                    return assignments;
+                    if (f == used.end())
+                    { //DC not in used
+                        used[DC] = 1;
+                    }
+                    else
+                    {
+                        ++used[DC];
+                    }
                 }
             }
         }
-        return assignments; //empty,exceptions
+        return assignments;
     }
 
 public:
@@ -78,22 +108,32 @@ public:
         for (string each_task : tasks)
         {
             ready_queue.insert(each_task);
-            //add task into ready_queue
-            for (unordered_map<string, pair<int, unordered_set<string>>>::iterator
-                     slot = graph->slots.begin();
-                 slot != graph->slots.end(); ++slot)
-            {
-                if ((slot->second).first != 0)
-                { //capacity>0
-                    Arrange this_method;
-                    this_method.first = count_time(each_task, slot->first);
-                    this_method.second.second = each_task;
-                    this_method.second.first = slot->first;
-                    mapping.push(this_method);
-                }
-            }
         }
+        //add task into ready_queue
     }
+
+    // legacy
+    // void sumbitTasks(unordered_set<string> tasks)
+    //{
+    //    for (string each_task : tasks)
+    //    {
+    //        ready_queue.insert(each_task);
+    //        //add task into ready_queue
+    //        for (unordered_map<string, pair<int, unordered_set<string>>>::iterator
+    //                 slot = graph->slots.begin();
+    //             slot != graph->slots.end(); ++slot)
+    //        {
+    //            if ((slot->second).first != 0)
+    //            { //capacity>0
+    //                Arrange this_method;
+    //                this_method.first = count_time(each_task, slot->first);
+    //                this_method.second.second = each_task;
+    //                this_method.second.first = slot->first;
+    //                mapping.push(this_method);
+    //            }
+    //        }
+    //    }
+    //}
 
     // update current resources from simulator
     // schedule tasks to slots
