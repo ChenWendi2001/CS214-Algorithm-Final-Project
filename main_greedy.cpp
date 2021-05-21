@@ -65,7 +65,7 @@ void init_data()
     // }
 
     //
-    //initialize run_time and require
+    //initialize run_time, require and job_task
     //
     json job;
     std::ifstream job_file("./ToyData/job_list.json");
@@ -75,9 +75,14 @@ void init_data()
     for (int i = 0; i < num_of_jobs; ++i)
     {
         int num_of_task = job["job"][i]["task"].size();
+        unordered_set<string> &task = graph->job_task[job["job"][i]["name"]];
         for (int j = 0; j < num_of_task; ++j)
         {
-            graph->run_time[job["job"][i]["task"][j]["name"]] = job["job"][i]["task"][j]["time"];
+            string task_name = job["job"][i]["task"][j]["name"];
+            //run time
+            graph->run_time[task_name] = job["job"][i]["task"][j]["time"];
+            //job list
+            task.insert(task_name);
             int num_of_resource = job["job"][i]["task"][j]["resource"].size();
             for (int k = 0; k < num_of_resource; ++k)
             {

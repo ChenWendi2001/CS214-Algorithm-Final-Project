@@ -28,6 +28,11 @@ void printError(string msg);
 
 struct Graph
 {
+    //task set of each job
+    //e.g {"A",{"tA1","tA2"}}
+    // job "A" has two tasks "tA1" and "tA2"
+    unordered_map<string,unordered_set<string>> job_task;
+
     //constraint
     //e.g, {"tB1","tB2"}
     // tB2 need the result of tB1
