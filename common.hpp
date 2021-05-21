@@ -95,8 +95,9 @@ struct Graph
             for (int i = 0; i < DC.second.first - tasks.size(); ++i)
                 std::cout << std::setw(4)
                           << ' ' << '|';
-            std::cout << std::endl;
+            std::cout << '\n';
         }
+        std::cout << std::endl;
     }
 };
 
