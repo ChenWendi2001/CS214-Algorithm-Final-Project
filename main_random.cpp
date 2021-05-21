@@ -16,7 +16,7 @@ int main()
     init_data();
     DAG dag;
     Scheduler scheduler(graph);
-    scheduler.sched_type = scheduler.GREEDY;
+    scheduler.sched_type = scheduler.RANDOM;
     Simulator sim;
 
     dag.init(graph);

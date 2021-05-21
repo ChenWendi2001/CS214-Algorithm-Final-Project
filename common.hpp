@@ -13,6 +13,7 @@
 #include <memory>
 #include <iomanip>
 #include <cmath>
+#include <random>
 
 using std::make_pair;
 using std::make_shared;
@@ -24,7 +25,26 @@ using std::unordered_map;
 using std::unordered_set;
 using std::vector;
 
-void printError(string msg);
+// uniformly random int in [mn, mx]
+int randInt(int mn, int mx)
+{
+    static std::mt19937 gen(time(0));
+    std::uniform_int_distribution<int> dis(mn, mx);
+    return dis(gen);
+}
+
+// print error message and terminate
+void printError(string msg)
+{
+    std::cout << "Error: " << msg << std::endl;
+    std::exit(0);
+}
+
+// print warning message
+void printWarning(string msg)
+{
+    std::cout << "Warning: " << msg << std::endl;
+}
 
 struct Graph
 {
@@ -117,18 +137,5 @@ struct Graph
         }
     }
 };
-
-// print error message and terminate
-void printError(string msg)
-{
-    std::cout << "Error: " << msg << std::endl;
-    std::exit(0);
-}
-
-// print warning message
-void printWarning(string msg)
-{
-    std::cout << "Warning: " << msg << std::endl;
-}
 
 #endif

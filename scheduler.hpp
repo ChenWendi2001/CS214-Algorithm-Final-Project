@@ -9,7 +9,7 @@ class Scheduler
 {
 private:
     typedef pair<double, pair<string, string>> Arrange;
-    // pair<transmit time(2),pair<task(DC1),slots(tA1)>>
+    // pair<transmit time(2),pair<slots(DC1),tasks(tA1)>>
     //the graph pointer
     shared_ptr<Graph> graph;
     //tasks are available but have not been scheduled
@@ -39,7 +39,6 @@ private:
         }
         return max;
     }
-
     vector<Arrange> getGreedy()
     {
         priority_queue<Arrange, vector<Arrange>, compare> mapping;
@@ -99,8 +98,48 @@ private:
         }
         return assignments;
     }
+    vector<Arrange> getRandom()
+    {
+        vector<pair<string, int>> available_slot;
+        int number;
+        for (pair<string, pair<int, unordered_set<string>>> slot : graph->slots)
+        {
+            number = slot.second.first - slot.second.second.size();
+            if (number != 0)
+            {
+                available_slot.push_back(make_pair(slot.first, number));
+            }
+        }
+        vector<Arrange> assignments;
+        Arrange assignment;
+        //unordered_set<string>::iterator ready_queue_begin=ready_queue.
+        while ((!ready_queue.empty()) &&
+               (!available_slot.empty()))
+        {
+            string task = *ready_queue.begin();
+            int DC_index = randInt(0, available_slot.size() - 1);
+            vector<pair<string, int>>::iterator iter = available_slot.begin() + DC_index;
+            string DC = iter->first;
+            assignment.first = count_time(task, DC);
+            assignment.second.first = DC;
+            assignment.second.second = task;
+            assignments.push_back(assignment);
+            if (!(--iter->second))
+            {
+                available_slot.erase(iter);
+            }
+            ready_queue.erase(task);
+        }
+        return assignments;
+    }
 
 public:
+    enum SchedType
+    {
+        GREEDY,
+        RANDOM
+    } sched_type;
+
     Scheduler(shared_ptr<Graph> g) : graph(g) {}
     // get new tasks from DAG
     void sumbitTasks(unordered_set<string> tasks)
@@ -141,7 +180,13 @@ public:
     //  assign tA1 to DC1, takes 4s to transfer data
     vector<Arrange> getScheduled()
     {
-        return getGreedy();
+        switch (sched_type)
+        {
+        case GREEDY:
+            return getGreedy();
+        case RANDOM:
+            return getRandom();
+        }
     }
 };
 
