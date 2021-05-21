@@ -28,6 +28,12 @@ void printError(string msg);
 
 struct Graph
 {
+    //task belongs to which job
+    //e.g {"tA1","A"}
+    //"tA1" belongs to "A"
+
+    unordered_map<string,string> which_job;
+
     //task set of each job
     //e.g {"A",{"tA1","tA2"}}
     // job "A" has two tasks "tA1" and "tA2"
