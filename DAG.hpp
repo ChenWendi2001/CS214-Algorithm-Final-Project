@@ -6,64 +6,85 @@
 class DAG
 {
 private:
+    shared_ptr<Graph> graph;
 
-shared_ptr<Graph> graph;
+    // available task queue
+    unordered_set<string> queue;
 
-//available task queue
-unordered_set<string> queue;
+    // e.g. DAG ["tA1"] = {"tA2","tA3"}
+    //  tA1 is directed to tA2 and tA3
+    unordered_map<string, unordered_set<string>> DAG;
 
-//e.g. DAG ["tA1"] = {"tA2","tA3"}
-//tA1 is directed to tA2 and tA3
-unordered_map<string,unordered_set<string>> DAG;
-
-
-//e.g DAG ["tA2"] = 2
-//there are 2 tasks are directed to tA2
-unordered_map <string,int> count;
+    // e.g count ["tA2"] = 2
+    //  there are 2 tasks are directed to tA2
+    unordered_map<string, int> count;
 
 public:
     // update DAG with finished tasks
     //  from simulator
-    void updateDAG(vector<string> finished_tasks)
+
+    bool if_finished()
+    {
+        return count.empty();
+    }
+
+    void updateDAG(vector<pair<string, double>> finished_tasks)
     {
         int size = finished_tasks.size();
-        for(int i = 0;i<size;++i){
-            for(auto iter = DAG[finished_tasks[i]].begin();iter!=DAG[finished_tasks[i]].end();iter++){
-                count[*iter] --;
-                if(count[*iter]==0){
-                    queue.insert(*iter);
+        for (int i = 0; i < size; ++i)
+        {
+            string task = std::move(finished_tasks[i].first);
+            count.erase(task);
+            auto &this_DAG = DAG[task];
+            for (const auto &iter : this_DAG)
+            {
+                if (--count[iter] == 0)
+                {
+                    queue.insert(iter);
+                    //count.erase(*iter);
                 }
             }
-            DAG.erase(finished_tasks[i]);
+            DAG.erase(task);
         }
     }
 
     // return new tasks that can be submit
     // e.g. {"tA1","tA2"}
     //  put these tasks to scheduler
-    vector<string> getSubmit()
-    {   
-        vector<string> temp(queue.begin(),queue.end());
-        queue.clear();
-        std::cout<<queue.size();
-        return temp;
+    unordered_set<string> getSubmit()
+    {
+        unordered_set<string> ret = std::move(queue);
+        // std::cout << queue.size();
+        if (!queue.empty())
+            printError("queue should be clear!");
+        return ret;
     }
 
     void init(shared_ptr<Graph> outergraph)
     {
         this->graph = outergraph;
-        for(auto iter = graph->require.begin();iter!=graph->require.end();iter++){
-            count[iter->first] = 0;
+        for (const auto &iter : graph->require)
+        {
+            count[iter.first] = 0;
         }
-        for(auto iter = graph->constraint.begin();iter!=graph->constraint.end();iter++){
-            count[iter->second]++;
-            DAG[iter->first].insert(iter->second);
+        for (const auto &iter : graph->constraint)
+        {
+            count[iter.second]++;
+            DAG[iter.first].insert(iter.second);
         }
 
-        for(auto iter = count.begin();iter!=count.end();iter++){
-            if(iter->second==0)
-                queue.insert(iter->first);
+        // unordered_set<string> need_del;
+        for (const auto &iter : count)
+        {
+            if (iter.second == 0)
+            {
+                queue.insert(iter.first);
+                // need_del.insert(iter->first);
+            }
         }
+        // for (const auto &it : need_del)
+        //     count.erase(it);
+
         //Debug code
         // for(auto iter = count.begin();iter!=count.end();iter++){
         //     if(iter->second==0)

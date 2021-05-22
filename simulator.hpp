@@ -14,7 +14,8 @@ private:
 
     // finish time and name
     // e.g. {4.5, "tA1"}
-    priority_queue<pair<double, string>> Q;
+    typedef pair<double, string> Task;
+    priority_queue<Task, vector<Task>, std::greater<Task>> Q;
 
     // location of task
     // e.g. locates["tA1"]="DC1"
@@ -59,6 +60,8 @@ public:
     // forward time to next completion
     void forwardTime()
     {
+        if (Q.empty())
+            printError("Q is Empty!");
         current_time = Q.top().first;
     }
 
@@ -73,10 +76,10 @@ public:
         {
             string DC = it.second.first;
             string task = it.second.second;
-            auto slots = graph->slots[DC];
-            unordered_set<string> &tasks = graph->slots[DC].second;
+            auto &slot = graph->slots[DC];
+            unordered_set<string> &tasks = slot.second;
 
-            if (graph->slots[DC].first <= tasks.size())
+            if (slot.first <= tasks.size())
                 printError("No Available Slots on " + DC);
 
             tasks.insert(task);
@@ -89,18 +92,27 @@ public:
     }
 
     // get finished tasks and update DAG
-    // e.g. {"tA1","tA2"} when these tasks are finished
-    vector<string> getFinished()
+    // e.g. {{"tA1",9.5},{"tA2",5}} when these tasks are finished
+    vector<pair<string, double>> getFinished()
     {
-        vector<string> finish_tasks;
+        vector<pair<string, double>> finish_tasks;
         // get finished tasks from Q
         static const double eps = 1e-8;
         while (!Q.empty() &&
                Q.top().first < current_time + eps)
         {
             string task = Q.top().second;
+            double finish_time = Q.top().first;
             graph->slots[locates[task]].second.erase(task);
-            finish_tasks.emplace_back(task);
+
+            // update job finish time
+            string job = graph->which_job[task];
+            auto &tasks = graph->job_task[job];
+            tasks.erase(task);
+            if (tasks.empty())
+                graph->finish_time[job] = finish_time;
+
+            finish_tasks.emplace_back(make_pair(task, finish_time));
             Q.pop();
         }
         return finish_tasks;

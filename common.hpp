@@ -13,7 +13,10 @@
 #include <memory>
 #include <iomanip>
 #include <cmath>
+#include <random>
+#include "json.hpp"
 
+using json = nlohmann::json;
 using std::make_pair;
 using std::make_shared;
 using std::pair;
@@ -24,15 +27,45 @@ using std::unordered_map;
 using std::unordered_set;
 using std::vector;
 
-void printError(string msg);
+// uniformly random int in [mn, mx]
+int randInt(int mn, int mx)
+{
+    static std::mt19937 gen(time(0));
+    std::uniform_int_distribution<int> dis(mn, mx);
+    return dis(gen);
+}
+
+// print error message and terminate
+void printError(string msg)
+{
+    std::cout << "Error: " << msg << std::endl;
+    std::exit(0);
+}
+
+// print warning message
+void printWarning(string msg)
+{
+    std::cout << "Warning: " << msg << std::endl;
+}
 
 struct Graph
 {
-    //constraint
-    //e.g, {"tB1","tB2"}
-    // tB2 need the result of tB1
-    vector<pair<string,string>> constraint;
+    // task belongs to which job
+    // e.g {"tA1","A"}
+    //  "tA1" belongs to "A"
+    unordered_map<string, string> which_job;
 
+    // job's finish time
+    unordered_map<string, double> finish_time;
+
+    // task set of each job
+    // e.g {"A",{"tA1","tA2"}}
+    //  job "A" has two tasks "tA1" and "tA2"
+    unordered_map<string, unordered_set<string>> job_task;
+
+    // e.g, {"tB1","tB2"}
+    //  tB2 need the result of tB1
+    vector<pair<string, string>> constraint;
 
     // task's run time
     // e.g. {"tA1", 2}
@@ -43,9 +76,8 @@ struct Graph
     // e.g. require["tA1"]={{"A1",50},{"A2",100}}
     //  tA1 needs A1 and A2
     unordered_map<string,
-                  vector<pair<string,double>>>
+                  vector<pair<string, double>>>
         require;
-
 
     // location of resource "xx"
     // e.g. resource_loc["A1"]=DC1
@@ -68,7 +100,7 @@ struct Graph
 
     // only initialized once
     // read task's run time from file
-    void readTaskTime(string file_name = "task_time.txt")
+    void readTaskTime(string file_name = "./task_time.txt")
     {
         std::ifstream fin(file_name);
         if (!fin.is_open())
@@ -92,22 +124,126 @@ struct Graph
             for (int i = 0; i < DC.second.first - tasks.size(); ++i)
                 std::cout << std::setw(4)
                           << ' ' << '|';
-            std::cout << std::endl;
+            std::cout << '\n';
+        }
+        std::cout << std::endl;
+    }
+
+    void printFinishTime()
+    {
+        for (const auto &it : finish_time)
+        {
+            std::cout << it.first << ' '
+                      << std::setprecision(4) << it.second << std::endl;
         }
     }
 };
 
-// print error message and terminate
-void printError(string msg)
+void init_data(shared_ptr<Graph> graph)
 {
-    std::cout << "Error: " << msg << std::endl;
-    std::exit(0);
-}
+    // initailize constraint
+    json constraint;
+    std::ifstream constraint_file("./ToyData/constraint.json");
+    constraint_file >> constraint;
+    for (const auto &iter : constraint["constraint"])
+    {
+        // <string,string>
+        graph->constraint.push_back(
+            make_pair(iter["start"], iter["end"]));
+    }
 
-// print warning message
-void printWarning(string msg)
-{
-    std::cout << "Warning: " << msg << std::endl;
+    // initialize run_time, require and job_task, which job
+    json job;
+    std::ifstream job_file("./ToyData/job_list.json");
+    job_file >> job;
+
+    int num_of_jobs = job["job"].size();
+    for (int i = 0; i < num_of_jobs; ++i)
+    {
+        const auto this_job = job["job"][i];
+        int num_of_task = this_job["task"].size();
+        string job_name = this_job["name"];
+        unordered_set<string> &job_task = graph->job_task[job_name];
+
+        for (int j = 0; j < num_of_task; ++j)
+        {
+            const auto &this_task = this_job["task"][j];
+            string task_name = this_task["name"];
+
+            graph->run_time[task_name] = this_task["time"]; // run time
+            job_task.insert(task_name);                     // job list
+            graph->which_job[task_name] = job_name;         // which job
+
+            int num_of_resource = this_task["resource"].size();
+            for (int k = 0; k < num_of_resource; ++k)
+            {
+                graph->require[task_name].push_back(
+                    make_pair(this_task["resource"][k]["name"],
+                              this_task["resource"][k]["size"]));
+            }
+        }
+    }
+
+    // initialize graph->resources
+    json DC;
+    std::ifstream DC_file("./ToyData/DC.json");
+    DC_file >> DC;
+
+    int num_of_dc = DC["DC"].size();
+    for (int i = 0; i < num_of_dc; ++i)
+    {
+        const auto &this_DC = DC["DC"][i];
+        int num_of_resource = this_DC["data"].size();
+        for (int j = 0; j < num_of_resource; ++j)
+            graph->resource_loc[this_DC["data"][j]] = this_DC["name"];
+    }
+
+    // initialize edges
+    json link;
+    std::ifstream link_file("./ToyData/link.json");
+    link_file >> link;
+
+    const double INF = 1e6;
+    for (int i = 0; i < num_of_dc; ++i)
+    {
+        for (int j = 0; j < num_of_dc; ++j)
+        {
+            int bandwidth = link["link"][i]["bandwidth"][j];
+            string u = link["link"][i]["start"];
+            string v = link["link"][j]["start"];
+            graph->edges[u][v] = bandwidth == -1
+                                     ? INF
+                                     : 1 / double(bandwidth);
+        }
+    }
+
+    // Floyd
+    for (int k = 0; k < num_of_dc; ++k)
+    {
+        auto dc_k = DC["DC"][k]["name"];
+
+        for (int i = 0; i < num_of_dc; ++i)
+        {
+            auto dc_i = DC["DC"][i]["name"];
+            double d_ik = graph->edges[dc_i][dc_k];
+
+            for (int j = 0; j < num_of_dc; ++j)
+            {
+                auto dc_j = DC["DC"][j]["name"];
+                double d_kj = graph->edges[dc_k][dc_j];
+                double &d_ij = graph->edges[dc_i][dc_j];
+
+                d_ij = std::min(d_ij, d_ik + d_kj);
+            }
+        }
+    }
+
+    // initialize slots
+    for (int i = 0; i < num_of_dc; ++i)
+    {
+        const auto &this_DC = DC["DC"][i];
+        graph->slots[this_DC["name"]].first = this_DC["size"];
+    }
 }
 
 #endif
