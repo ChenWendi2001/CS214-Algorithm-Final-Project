@@ -2,6 +2,8 @@
 #include "json.hpp"
 #include <fstream>
 #include "DAG.hpp"
+#include "scheduler.hpp"
+#include "simulator.hpp"
 
 using json = nlohmann::json;
 
@@ -13,7 +15,37 @@ int main()
 {
     init_data();
     DAG dag;
+    Scheduler scheduler;
+    scheduler.sched_type = scheduler.GREEDY;
+    Simulator sim;
+
     dag.init(graph);
+    scheduler.initGraph(graph);
+    sim.updateGraph(graph);
+    sim.printStatus();
+    int task_cnt = 0;
+    while (!dag.if_finished())
+    {
+
+        scheduler.sumbitTasks(dag.getSubmit());
+        auto sched = scheduler.getScheduled();
+        sim.updateScheduled(sched);
+
+        // sim.printStatus();
+        sim.forwardTime();
+        // std::cout << sim.getTime() << "\n";
+        auto finished = sim.getFinished();
+
+        // for (const auto &it : finished)
+        //     std::cout << it.first << ' ';
+        // std::cout << std::endl;
+
+        task_cnt += finished.size();
+        dag.updateDAG(finished);
+    }
+    std::cout << sim.getTime() << "\n";
+
+    graph->printFinishTime();
 
     //Debug code
     // vector<string> temp = dag.getSubmit();
@@ -25,16 +57,21 @@ int main()
 
 void init_data()
 {
-    graph = graph = make_shared<Graph>();
+    // WTF?
+    // graph = graph = make_shared<Graph>();
+    graph = make_shared<Graph>();
+
     //
     //initailize constraint
     //
     json constraint;
     std::ifstream constraint_file("./ToyData/constraint.json");
     constraint_file >> constraint;
-    for (auto iter = constraint["constraint"].begin(); iter != constraint["constraint"].end(); iter++)
+    for (const auto &iter : constraint["constraint"])
     {
-        graph->constraint.push_back(std::make_pair<string, string>((*iter)["start"], (*iter)["end"]));
+        // <string,string>
+        graph->constraint.push_back(
+            make_pair(iter["start"], iter["end"]));
     }
 
     //Debug code
@@ -43,7 +80,7 @@ void init_data()
     // }
 
     //
-    //initialize run_time and require
+    //initialize run_time, require and job_task, which job
     //
     json job;
     std::ifstream job_file("./ToyData/job_list.json");
@@ -52,15 +89,26 @@ void init_data()
     int num_of_jobs = job["job"].size();
     for (int i = 0; i < num_of_jobs; ++i)
     {
-        int num_of_task = job["job"][i]["task"].size();
+        const auto this_job = job["job"][i];
+        int num_of_task = this_job["task"].size();
+        string job_name = this_job["name"];
+        unordered_set<string> &job_task = graph->job_task[job_name];
+
         for (int j = 0; j < num_of_task; ++j)
         {
-            graph->run_time[job["job"][i]["task"][j]["name"]] = job["job"][i]["task"][j]["time"];
-            int num_of_resource = job["job"][i]["task"][j]["resource"].size();
+            const auto &this_task = this_job["task"][j];
+            string task_name = this_task["name"];
+
+            graph->run_time[task_name] = this_task["time"]; // run time
+            job_task.insert(task_name);                     // job list
+            graph->which_job[task_name] = job_name;         // which job
+
+            int num_of_resource = this_task["resource"].size();
             for (int k = 0; k < num_of_resource; ++k)
             {
-                graph->require[job["job"][i]["task"][j]["name"]].push_back(
-                    std::make_pair(job["job"][i]["task"][j]["resource"][k]["name"], job["job"][i]["task"][j]["resource"][k]["size"]));
+                graph->require[task_name].push_back(
+                    make_pair(this_task["resource"][k]["name"],
+                              this_task["resource"][k]["size"]));
             }
         }
     }
@@ -90,9 +138,10 @@ void init_data()
     int num_of_dc = DC["DC"].size();
     for (int i = 0; i < num_of_dc; ++i)
     {
-        int num_of_resource = DC["DC"][i]["data"].size();
+        const auto &this_DC = DC["DC"][i];
+        int num_of_resource = this_DC["data"].size();
         for (int j = 0; j < num_of_resource; ++j)
-            graph->resource_loc[DC["DC"][i]["data"][j]] = DC["DC"][i]["name"];
+            graph->resource_loc[this_DC["data"][j]] = this_DC["name"];
     }
 
     //Debug code
@@ -111,31 +160,37 @@ void init_data()
     std::ifstream link_file("./ToyData/link.json");
     link_file >> link;
 
+    const double INF = 1e6;
     for (int i = 0; i < num_of_dc; ++i)
     {
         for (int j = 0; j < num_of_dc; ++j)
         {
-            if (link["link"][i]["bandwidth"][j] == -1)
-                graph->edges[link["link"][i]["start"]][link["link"][j]["start"]] = 0xFFFF;
-            else
-                graph->edges[link["link"][i]["start"]][link["link"][j]["start"]] = 1 / double(link["link"][i]["bandwidth"][j]);
+            int bandwidth = link["link"][i]["bandwidth"][j];
+            string u = link["link"][i]["start"];
+            string v = link["link"][j]["start"];
+            graph->edges[u][v] = bandwidth == -1
+                                     ? INF
+                                     : 1 / double(bandwidth);
         }
     }
 
-    //Floyd
-    for (int i = 0; i < num_of_dc; ++i)
+    // Floyd
+    for (int k = 0; k < num_of_dc; ++k)
     {
-        for (int j = 0; j < num_of_dc; ++j)
+        auto dc_k = DC["DC"][k]["name"];
+
+        for (int i = 0; i < num_of_dc; ++i)
         {
-            for (int k = 0; k < num_of_dc; ++k)
+            auto dc_i = DC["DC"][i]["name"];
+            double d_ik = graph->edges[dc_i][dc_k];
+
+            for (int j = 0; j < num_of_dc; ++j)
             {
-                auto dc_i = DC["DC"][i]["name"];
                 auto dc_j = DC["DC"][j]["name"];
-                auto dc_k = DC["DC"][k]["name"];
-                if (graph->edges[dc_i][dc_j] > graph->edges[dc_i][dc_k] + graph->edges[dc_k][dc_j])
-                {
-                    graph->edges[dc_i][dc_j] = graph->edges[dc_i][dc_k] + graph->edges[dc_k][dc_j];
-                }
+                double d_kj = graph->edges[dc_k][dc_j];
+                double &d_ij = graph->edges[dc_i][dc_j];
+
+                d_ij = std::min(d_ij, d_ik + d_kj);
             }
         }
     }
@@ -154,7 +209,8 @@ void init_data()
     //
     for (int i = 0; i < num_of_dc; ++i)
     {
-        graph->slots[DC["DC"][i]["name"]].first = DC["DC"][i]["size"];
+        const auto &this_DC = DC["DC"][i];
+        graph->slots[this_DC["name"]].first = this_DC["size"];
     }
 
     //Debug code

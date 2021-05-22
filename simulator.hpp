@@ -76,10 +76,10 @@ public:
         {
             string DC = it.second.first;
             string task = it.second.second;
-            auto slots = graph->slots[DC];
-            unordered_set<string> &tasks = graph->slots[DC].second;
+            auto &slot = graph->slots[DC];
+            unordered_set<string> &tasks = slot.second;
 
-            if (graph->slots[DC].first <= tasks.size())
+            if (slot.first <= tasks.size())
                 printError("No Available Slots on " + DC);
 
             tasks.insert(task);
@@ -102,6 +102,7 @@ public:
                Q.top().first < current_time + eps)
         {
             string task = Q.top().second;
+            double finish_time = Q.top().first;
             graph->slots[locates[task]].second.erase(task);
 
             // update job finish time
@@ -109,9 +110,9 @@ public:
             auto &tasks = graph->job_task[job];
             tasks.erase(task);
             if (tasks.empty())
-                graph->finish_time[job] = Q.top().first;
+                graph->finish_time[job] = finish_time;
 
-            finish_tasks.emplace_back(make_pair(task, Q.top().first));
+            finish_tasks.emplace_back(make_pair(task, finish_time));
             Q.pop();
         }
         return finish_tasks;
