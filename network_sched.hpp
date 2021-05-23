@@ -24,21 +24,27 @@ private:
         }
     };
     Location DC_id, task_id;
+    int task_num, DC_num;
 
-    int source, sink;
-    int task_total;
-
+    // -----> Dinic begin
+    const int source, sink;
     struct Edge
     {
-        int v;
-        int cap;
-        double val;
+        int v;      // to v
+        int cap;    // remaining capacity: cap-flow
+        int next;   // point at next edge
+        double val; // weight
     };
-    // max and min in edges' value
+    // max and min among edges' value
     double max_val, min_val;
-
     // adjacent list
-    vector<vector<Edge>> edges;
+    vector<int> head;
+    // array of all edges
+    // note: i^1 is residual edge
+    vector<Edge> edges;
+    // current edge optimization
+    vector<int> cur_head;
+    // <----- Dinic end
 
     // e.g. {{"DC1","tA1"}}
     //  assign tA1 to DC1
@@ -48,12 +54,16 @@ private:
     void addEdge(int u, int v,
                  int cap, double val)
     {
-        edges[u].emplace_back((Edge){v, cap, val});
+        Edge e;
+        e.next = head[u], e.v = v;
+        e.cap = cap, e.val = val;
+        edges.emplace_back(e);
+        head[u] = edges.size() - 1;
     }
 
     // u->v with capacity cap and value val
     // note: if we use edges[idx] to store this edge
-    //  edges[idx^1] is the reversed edge of this
+    //  edges[idx^1] is exactly the reversed edge
     void addEdges(int u, int v,
                   int cap, double val)
     {
@@ -66,6 +76,9 @@ private:
     void buildNetwork(const vector<pair<string, int>> &cap_info,
                       const vector<pair<double, pair<string, string>>> &assign_info)
     {
+        // initialize head with -1
+        head = vector<int>(2 + DC_num + task_num, -1);
+
         // link source to DC
         for (const auto &it : cap_info)
         {
@@ -92,23 +105,86 @@ private:
         }
     }
 
-    // use Dinic Algorithm to solve max flow
-    // we only use edges whose value < val_bound
-    int Dinic(double val_bound)
+    bool DinicBFS(vector<int> &d,
+                  double val_bound)
     {
+        for (auto &di : d)
+            di = 0;
+        d[source] = 1;
+
+        std::queue<int> Q;
+        Q.push(source);
+        while (!Q.empty())
+        {
+            int x = Q.front();
+            Q.pop();
+            for (int i = head[x]; ~i; i = edges[i].next)
+            {
+                int to = edges[i].v;
+                if (!d[to] &&
+                    edges[i].cap > 0 &&
+                    edges[i].val < val_bound)
+                {
+                    d[to] = d[x] + 1;
+                    Q.push(to);
+                }
+            }
+        }
+        return d[sink];
     }
 
-    // note: this is not usual MCMF,
-    //  which means min cost max flow
+    int DinicDFS(const vector<int> &d,
+                 int x, int cur_flow)
+    {
+        if (cur_flow == 0 || x == sink)
+            return cur_flow;
+        if (d[x] >= d[sink]) // can not reach sink
+            return 0;
+
+        int ret = 0;
+        for (int &i = cur_head[x]; ~i && cur_flow > 0;
+             i = edges[i].next)
+        {
+            int to = edges[i].v;
+            if (d[x] + 1 == d[to])
+            {
+                int new_flow = DinicDFS(d, to,
+                                        std::min(cur_flow, edges[i].cap));
+                edges[i].cap -= new_flow;
+                edges[i ^ 1].cap += new_flow;
+                ret += new_flow;
+                cur_flow -= new_flow;
+            }
+        }
+        return ret;
+    }
+
+    // use Dinic Algorithm to compute max flow
+    // note: only use edges with value < val_bound
+    int Dinic(double val_bound)
+    {
+        int ret;
+        // layer
+        vector<int> d(2 + DC_num + task_num, 0);
+        while (DinicBFS(d, val_bound))
+        {
+            cur_head = head;
+            ret += DinicDFS(d, source,
+                            std::numeric_limits<int>::max());
+        }
+        return ret;
+    }
+
+    // note: this is not common MCMF(min cost max flow)
     // this is actually min{cost[edge]} with max flow
-    // here, we use binary search to find threshold
+    // here, we use binary search to find the answer
     double MCMF()
     {
         double L = min_val, R = max_val;
         while (fabs(R - L) > eps)
         {
             double mid = (L + R) / 2;
-            if (Dinic(mid) == task_total)
+            if (Dinic(mid) == task_num)
                 R = mid;
             else
                 L = mid;
@@ -138,17 +214,16 @@ private:
         //      update assigned tasks
         // }
 
-        while (assigned.size() < task_total)
+        while (assigned.size() < task_num)
         {
         }
     }
 
 public:
-    NetworkSched()
+    NetworkSched() : source(0), sink(1)
     {
         min_val = std::numeric_limits<double>::max();
         max_val = 0;
-        source = 0, sink = 1;
     }
 
     // e.g. {{"tA1","tA2"},{"tB2"}} in task_group
@@ -164,7 +239,8 @@ public:
     {
         DC_id.cur_idx = 2;
         task_id.cur_idx = DC_num + 1;
-        task_total = task_num;
+        this->DC_num = DC_num;
+        this->task_num = task_num;
 
         buildNetwork(cap_info, assign_info);
 
