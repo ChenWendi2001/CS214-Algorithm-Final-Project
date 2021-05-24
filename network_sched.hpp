@@ -1,42 +1,58 @@
 #include "common.hpp"
 
-// when construct nodes
-// we assign source to 0, sink to 1
-//  DC in [2,n+1] with n DC in total, (may out of order)
-//  and task in [n+2,...] (may out of order)
+// when constructing nodes
+// we assign
+//  DC in [0,n-1] (may out of order)
+//  task in [n,n+m-1] (may out of order)
+//  source to n+m, sink to n+m+1
 class NetworkSched
 {
 private:
-    static const double eps = 1e-8;
+    static constexpr double eps = 1e-8;
+
+    typedef pair<double, pair<string, string>> Assign;
 
     struct Location
     {
         // {"DC1",2} means DC1 is node 2 in network
         unordered_map<string, int> loc;
+        // {2,"DC1"}
+        unordered_map<int, string> names;
         int cur_idx;
 
-        int get(const string &name)
+        int ID(const string &name)
         {
             if (loc.find(name) == loc.end())
-                loc[name] = cur_idx++;
+            {
+                loc[name] = cur_idx;
+                names[cur_idx] = name;
+                return cur_idx++;
+            }
             else
                 return loc[name];
+        }
+
+        string Name(int k)
+        {
+            return names[k];
         }
     };
     Location DC_id, task_id;
     int task_num, DC_num;
 
     // -----> Dinic begin
-    const int source, sink;
+    int source, sink;
     struct Edge
     {
-        int v;      // to v
-        int cap;    // remaining capacity: cap-flow
-        int next;   // point at next edge
-        double val; // weight
+        int v;          // to v
+        int ori_cap;    // original capacity
+        int cap;        // remaining capacity: cap-flow
+        int next;       // point at next edge
+        double ori_val; //original weight
+        double val;     // weight
     };
-    // max and min among edges' value
-    double max_val, min_val;
+    // max among edges' value
+    double max_val;
     // adjacent list
     vector<int> head;
     // array of all edges
@@ -46,9 +62,9 @@ private:
     vector<int> cur_head;
     // <----- Dinic end
 
-    // e.g. {{"DC1","tA1"}}
-    //  assign tA1 to DC1
-    vector<pair<string, string>> assigned;
+    // e.g. {{4,{"DC1","tA1"}}}
+    //  assign tA1 to DC1, takes 4s to transfer data
+    vector<Assign> assigned;
 
 private:
     void addEdge(int u, int v,
@@ -56,7 +72,8 @@ private:
     {
         Edge e;
         e.next = head[u], e.v = v;
-        e.cap = cap, e.val = val;
+        e.ori_cap = cap;
+        e.ori_val = e.val = val;
         edges.emplace_back(e);
         head[u] = edges.size() - 1;
     }
@@ -69,12 +86,11 @@ private:
     {
         addEdge(u, v, cap, val);
         addEdge(v, u, 0, val);
-        min_val = std::min(min_val, val);
         max_val = std::max(max_val, val);
     }
 
     void buildNetwork(const vector<pair<string, int>> &cap_info,
-                      const vector<pair<double, pair<string, string>>> &assign_info)
+                      const vector<Assign> &assign_info)
     {
         // initialize head with -1
         head = vector<int>(2 + DC_num + task_num, -1);
@@ -82,16 +98,16 @@ private:
         // link source to DC
         for (const auto &it : cap_info)
         {
-            int DC = DC_id.get(it.first);
+            int DC = DC_id.ID(it.first);
             addEdges(source, DC, it.second, 0);
         }
 
         // link DC to task
         for (const auto &it : assign_info)
         {
-            auto loc = it.second;
-            int DC = DC_id.get(loc.first);
-            int task = task_id.get(loc.second);
+            auto item = it.second;
+            int DC = DC_id.ID(item.first);
+            int task = task_id.ID(item.second);
 
             // this is an assign edge
             addEdges(DC, task, 1, it.first);
@@ -123,7 +139,7 @@ private:
                 int to = edges[i].v;
                 if (!d[to] &&
                     edges[i].cap > 0 &&
-                    edges[i].val < val_bound)
+                    edges[i].val <= val_bound)
                 {
                     d[to] = d[x] + 1;
                     Q.push(to);
@@ -134,6 +150,7 @@ private:
     }
 
     int DinicDFS(const vector<int> &d,
+                 double val_bound,
                  int x, int cur_flow)
     {
         if (cur_flow == 0 || x == sink)
@@ -146,9 +163,10 @@ private:
              i = edges[i].next)
         {
             int to = edges[i].v;
-            if (d[x] + 1 == d[to])
+            if (d[x] + 1 == d[to] &&
+                edges[i].val <= val_bound)
             {
-                int new_flow = DinicDFS(d, to,
+                int new_flow = DinicDFS(d, val_bound, to,
                                         std::min(cur_flow, edges[i].cap));
                 edges[i].cap -= new_flow;
                 edges[i ^ 1].cap += new_flow;
@@ -163,15 +181,21 @@ private:
     // note: only use edges with value < val_bound
     int Dinic(double val_bound)
     {
-        int ret;
+        for (auto &edge : edges)
+            edge.cap = edge.ori_cap;
+
+        int ret = 0;
         // layer
         vector<int> d(2 + DC_num + task_num, 0);
         while (DinicBFS(d, val_bound))
         {
             cur_head = head;
-            ret += DinicDFS(d, source,
+            ret += DinicDFS(d, val_bound, source,
                             std::numeric_limits<int>::max());
         }
+        if (ret > task_num)
+            printError("Compute Max Flow " + std::to_string(ret) +
+                       " with Only " + std::to_string(task_num) + " Tasks");
         return ret;
     }
 
@@ -180,7 +204,7 @@ private:
     // here, we use binary search to find the answer
     double MCMF()
     {
-        double L = min_val, R = max_val;
+        double L = 0, R = max_val;
         while (fabs(R - L) > eps)
         {
             double mid = (L + R) / 2;
@@ -195,6 +219,26 @@ private:
     // read scheduled tasks from network
     void readSched()
     {
+        assigned.clear();
+        // DC in [0,n-1]
+        for (int i = 0; i < DC_num; ++i)
+        {
+            string DC = DC_id.Name(i);
+            for (int j = head[i]; ~j; j = edges[j].next)
+            {
+                if (edges[j].v != source &&
+                    edges[j].cap == 0)
+                {
+                    // this is an assign edge
+                    // ## todo this is not correct
+                    // !!!!!!!!!
+                    string task = task_id.Name(edges[j].v);
+                    auto item = make_pair(DC, task);
+                    assigned.emplace_back(
+                        make_pair(edges[j].ori_val, item));
+                }
+            }
+        }
     }
 
     // main function schedule all tasks
@@ -202,7 +246,7 @@ private:
     {
         // while (assigned_task<total)
         // {
-        //      find a solution with min{cost[edge]}
+        //      find a solution with MCMF
         //      find and remove bottleneck tasks, say need T time
         //      update network according to bottleneck tasks
         //          1. assign bottleneck to DC
@@ -214,31 +258,34 @@ private:
         //      update assigned tasks
         // }
 
+        // not correct
+        MCMF();
+        readSched();
+
         while (assigned.size() < task_num)
         {
         }
     }
 
 public:
-    NetworkSched() : source(0), sink(1)
-    {
-        min_val = std::numeric_limits<double>::max();
-        max_val = 0;
-    }
+    NetworkSched() : max_val(0) {}
 
     // e.g. {{"tA1","tA2"},{"tB2"}} in task_group
     //  tA1 and tA2 belong to same job
     // e.g. {{"DC1",4}} in cap_info
     //  the capacity of DC1 is 4
     // e.g. {{4,{"DC1","tA1"}}} in assign_info
-    //  if we assign tA1 to DC1, then it takes 3.5s to transfer data
+    //  if we assign tA1 to DC1, then it takes 4s to transfer data
     void initNetwork(int DC_num, int task_num,
-                     vector<vector<string>> task_group,
+                     //  vector<vector<string>> task_group,
                      vector<pair<string, int>> cap_info,
-                     vector<pair<double, pair<string, string>>> assign_info)
+                     vector<Assign> assign_info)
     {
-        DC_id.cur_idx = 2;
-        task_id.cur_idx = DC_num + 1;
+        DC_id.cur_idx = 0;
+        task_id.cur_idx = DC_num;
+        source = DC_num + task_num;
+        sink = source + 1;
+
         this->DC_num = DC_num;
         this->task_num = task_num;
 
@@ -249,9 +296,9 @@ public:
     }
 
     // schedule tasks to slots
-    // e.g. {{"DC1","tA1"}}
-    //  assign tA1 to DC1
-    vector<pair<string, string>> getSched()
+    // e.g. {{4,{"DC1","tA1"}}}
+    //  assign tA1 to DC1, takes 4s to transfer data
+    vector<Assign> getSched()
     {
         schedule();
         return assigned;
