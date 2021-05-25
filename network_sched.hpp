@@ -46,10 +46,19 @@ private:
     {
         int v;          // to v
         int ori_cap;    // original capacity
-        int cap;        // remaining capacity: cap-flow
+        int cap;        // residual capacity: cap-flow
         int next;       // point at next edge
-        double ori_val; //original weight
-        double val;     // weight
+        double ori_val; // original weight
+        double val;     // can be changed into 0 or INF
+
+        // debug
+        void print()
+        {
+            std::cout << "to: " << v << '\n'
+                      << "ori_cap: " << ori_cap << '\n'
+                      << "ori_val: " << ori_val << '\n'
+                      << "val: " << val << std::endl;
+        }
     };
     // max among edges' value
     double max_val;
@@ -61,6 +70,12 @@ private:
     // current edge optimization
     vector<int> cur_head;
     // <----- Dinic end
+
+    // task group scheduling
+    // e.g. {{"tA1","tA2"}}
+    vector<vector<string>> task_group;
+    // which job this task belongs to
+    unordered_map<string, int> which_job;
 
     // e.g. {{4,{"DC1","tA1"}}}
     //  assign tA1 to DC1, takes 4s to transfer data
@@ -124,8 +139,7 @@ private:
     bool DinicBFS(vector<int> &d,
                   double val_bound)
     {
-        for (auto &di : d)
-            di = 0;
+        d.assign(d.size(), 0);
         d[source] = 1;
 
         std::queue<int> Q;
@@ -185,41 +199,149 @@ private:
             edge.cap = edge.ori_cap;
 
         int ret = 0;
-        // layer
-        vector<int> d(2 + DC_num + task_num, 0);
+        // used to store layer info
+        vector<int> d(2 + DC_num + task_num);
         while (DinicBFS(d, val_bound))
         {
             cur_head = head;
             ret += DinicDFS(d, val_bound, source,
                             std::numeric_limits<int>::max());
         }
-        if (ret > task_num)
-            printError("Compute Max Flow " + std::to_string(ret) +
-                       " with Only " + std::to_string(task_num) + " Tasks");
         return ret;
     }
 
     // note: this is not common MCMF(min cost max flow)
     // this is actually min{cost[edge]} with max flow
     // here, we use binary search to find the answer
-    double MCMF()
+    double MCMF(int K) // K th iteration
     {
-        double L = 0, R = max_val;
-        while (fabs(R - L) > eps)
+        double L = 0, R = max_val + eps;
+
+        while (fabs(R - L) > eps / 10)
         {
             double mid = (L + R) / 2;
-            if (Dinic(mid) == task_num)
+            int flow = Dinic(mid);
+
+            if (flow > task_num - K)
+                printError("Compute Max Flow " + std::to_string(flow) +
+                           " with Only " + std::to_string(task_num - K) +
+                           " Tasks");
+
+            if (flow == task_num - K)
                 R = mid;
             else
                 L = mid;
         }
+
+        // invoke Dinic again
+        // note: to avoid floating point precision
+        //  cause some subtle errors
+        if (Dinic(R) < task_num - K)
+            printError("No Enough Slots");
+
         return R;
     }
 
-    // read scheduled tasks from network
+    // decrease this DC's capacity by 1
+    // as we have assigned one task in it
+    void decCapacityDC(int DC)
+    {
+        for (int i = head[source]; ~i;
+             i = edges[i].next)
+        {
+            if (edges[i].v == DC)
+            {
+                edges[i].ori_cap--;
+                return;
+            }
+        }
+        printError("No Such DC!");
+    }
+
+    // - change edge with val<bound to 0
+    //   no matter where they are, as long as cost not exceed T it's fine
+    // - change edge with val>T to INF
+    //   these edges will never be used, otherwise T is not bottleneck
+    // note: change neck_task's edges to INF
+    void updateJob(int job, int neck_task,
+                   double val_bound)
+    {
+        // DC in [0,n-1]
+        for (int i = 0; i < DC_num; ++i)
+        {
+            string DC = DC_id.Name(i);
+            static const double INF = std::numeric_limits<double>::max();
+            for (int j = head[i]; ~j; j = edges[j].next)
+                if (edges[j].v != source)
+                {
+                    string task = task_id.Name(edges[j].v);
+
+                    if (which_job.find(task) == which_job.end())
+                    {
+                        edges[j].print();
+                        printError("No Such Task!");
+                    }
+                    if (edges[j].v == neck_task)
+                        edges[j].val = edges[j ^ 1].val = INF;
+                    else if (which_job[task] == job)
+                    {
+                        edges[j].print();
+                        edges[j].val = edges[j ^ 1].val =
+                            (edges[j].val > val_bound + eps
+                                 ? INF
+                                 : 0);
+                        edges[j].print();
+                    }
+                }
+        }
+    }
+
+    // find bottleneck task
+    // then, assign this task, dec DC cap
+    //  and update group nodes
+    void findBottelneck(double val_bound)
+    {
+        // DC in [0,n-1]
+        for (int i = 0; i < DC_num; ++i)
+        {
+            string DC = DC_id.Name(i);
+            for (int j = head[i]; ~j; j = edges[j].next)
+            {
+                if (edges[j].v != source &&
+                    edges[j].cap == 0 &&
+                    fabs(edges[j].val - val_bound) < eps)
+                {
+                    // this is an assign edge
+                    // val==val_bound indicates a bottleneck
+                    string task = task_id.Name(edges[j].v);
+                    // assign this task
+                    auto item = make_pair(DC, task);
+                    assigned.emplace_back(
+                        make_pair(edges[j].ori_val, item));
+
+                    // this edge should never be choosen
+                    // in updateJob() now
+                    // edges[j].val = std::numeric_limits<double>::max();
+
+                    // not read by readSched
+                    edges[j].cap = edges[j].ori_cap;
+
+                    // DC cap--
+                    decCapacityDC(i);
+                    // update job
+                    int job_id = which_job[task];
+                    updateJob(job_id, edges[j].v, val_bound);
+
+                    return;
+                }
+            }
+        }
+        printError("Do Not Find Bottleneck!");
+    }
+
+    // read (remaining) scheduled tasks from network
     void readSched()
     {
-        assigned.clear();
         // DC in [0,n-1]
         for (int i = 0; i < DC_num; ++i)
         {
@@ -229,9 +351,6 @@ private:
                 if (edges[j].v != source &&
                     edges[j].cap == 0)
                 {
-                    // this is an assign edge
-                    // ## todo this is not correct
-                    // !!!!!!!!!
                     string task = task_id.Name(edges[j].v);
                     auto item = make_pair(DC, task);
                     assigned.emplace_back(
@@ -244,27 +363,35 @@ private:
     // main function schedule all tasks
     void schedule()
     {
-        // while (assigned_task<total)
+        // repeat until every job has one bottleneck task
         // {
         //      find a solution with MCMF
         //      find and remove bottleneck tasks, say need T time
         //      update network according to bottleneck tasks
         //          1. assign bottleneck to DC
         //          2. change edges' value of tasks in bottleneck group
-        //             - change edge with val<T to 0
+        //             - change edge with val < T to 0
         //               no matter where they are, as long as cost not exceed T it's fine
-        //             - change edge with val>T to INF
+        //             - change edge with val > T to INF
         //               these edges will never be used, otherwise T is not bottleneck
         //      update assigned tasks
         // }
 
-        // not correct
-        MCMF();
-        readSched();
-
-        while (assigned.size() < task_num)
+        for (int i = 0; i < task_group.size(); ++i)
         {
+            double val_bound = MCMF(i);
+
+            // debug
+            // readSched();
+            // return;
+
+            findBottelneck(val_bound);
         }
+
+        // assign rest tasks
+        readSched();
+        if (assigned.size() != task_num)
+            printError("Error Assigned Size!");
     }
 
 public:
@@ -277,7 +404,7 @@ public:
     // e.g. {{4,{"DC1","tA1"}}} in assign_info
     //  if we assign tA1 to DC1, then it takes 4s to transfer data
     void initNetwork(int DC_num, int task_num,
-                     //  vector<vector<string>> task_group,
+                     vector<vector<string>> task_group,
                      vector<pair<string, int>> cap_info,
                      vector<Assign> assign_info)
     {
@@ -289,10 +416,13 @@ public:
         this->DC_num = DC_num;
         this->task_num = task_num;
 
-        buildNetwork(cap_info, assign_info);
+        // initialize job
+        this->task_group = task_group;
+        for (int i = 0; i < task_group.size(); ++i)
+            for (const auto &task : task_group[i])
+                which_job[task] = i;
 
-        // ####### todo
-        // initTaskGroup()
+        buildNetwork(cap_info, assign_info);
     }
 
     // schedule tasks to slots
