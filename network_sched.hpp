@@ -34,6 +34,9 @@ private:
 
         string Name(int k)
         {
+            if (names.find(k) == names.end())
+                printError("No Such k: " + std::to_string(k));
+
             return names[k];
         }
     };
@@ -215,7 +218,7 @@ private:
     // here, we use binary search to find the answer
     double MCMF(int K) // K th iteration
     {
-        double L = 0, R = max_val + eps;
+        double L = 0, R = max_val + eps * 10;
 
         while (fabs(R - L) > eps / 10)
         {
@@ -235,7 +238,7 @@ private:
 
         // invoke Dinic again
         // note: to avoid floating point precision
-        //  cause some subtle errors
+        //  cause some subtle bugs
         if (Dinic(R) < task_num - K)
             printError("No Enough Slots");
 
@@ -285,12 +288,12 @@ private:
                         edges[j].val = edges[j ^ 1].val = INF;
                     else if (which_job[task] == job)
                     {
-                        edges[j].print();
+                        // edges[j].print();
                         edges[j].val = edges[j ^ 1].val =
                             (edges[j].val > val_bound + eps
                                  ? INF
                                  : 0);
-                        edges[j].print();
+                        // edges[j].print();
                     }
                 }
         }
@@ -361,7 +364,7 @@ private:
     }
 
     // main function schedule all tasks
-    void schedule()
+    void scheduleFair()
     {
         // repeat until every job has one bottleneck task
         // {
@@ -391,10 +394,27 @@ private:
         // assign rest tasks
         readSched();
         if (assigned.size() != task_num)
-            printError("Error Assigned Size!");
+            printError("Incorrect Assigned Size!");
+    }
+
+    // only run MCMF one time
+    // do not use task_group
+    // minimize worse time of all tasks
+    void scheduleSimple()
+    {
+        MCMF(0);
+        readSched();
+        if (assigned.size() != task_num)
+            printError("Incorrect Assigned Size!");
     }
 
 public:
+    enum SchedType
+    {
+        FAIR,
+        SIMPLE
+    } sched_type;
+
     NetworkSched() : max_val(0) {}
 
     // e.g. {{"tA1","tA2"},{"tB2"}} in task_group
@@ -403,18 +423,18 @@ public:
     //  the capacity of DC1 is 4
     // e.g. {{4,{"DC1","tA1"}}} in assign_info
     //  if we assign tA1 to DC1, then it takes 4s to transfer data
-    void initNetwork(int DC_num, int task_num,
+    void initNetwork(int task_num,
                      vector<vector<string>> task_group,
                      vector<pair<string, int>> cap_info,
                      vector<Assign> assign_info)
     {
+        DC_num = cap_info.size();
+        this->task_num = task_num;
+
         DC_id.cur_idx = 0;
         task_id.cur_idx = DC_num;
         source = DC_num + task_num;
         sink = source + 1;
-
-        this->DC_num = DC_num;
-        this->task_num = task_num;
 
         // initialize job
         this->task_group = task_group;
@@ -430,7 +450,15 @@ public:
     //  assign tA1 to DC1, takes 4s to transfer data
     vector<Assign> getSched()
     {
-        schedule();
+        switch (sched_type)
+        {
+        case SIMPLE:
+            scheduleSimple();
+            break;
+        case FAIR:
+            scheduleFair();
+            break;
+        }
         return assigned;
     }
 };

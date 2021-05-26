@@ -27,6 +27,10 @@ using std::unordered_map;
 using std::unordered_set;
 using std::vector;
 
+// data directory
+// static const string DIR = "./ToyData/";
+static const string DIR = "./";
+
 // uniformly random int in [mn, mx]
 int randInt(int mn, int mx)
 {
@@ -98,19 +102,6 @@ struct Graph
                   pair<int, unordered_set<string>>>
         slots;
 
-    // only initialized once
-    // read task's run time from file
-    void readTaskTime(string file_name = "./task_time.txt")
-    {
-        std::ifstream fin(file_name);
-        if (!fin.is_open())
-            printError(file_name + " not found!");
-        string name;
-        double t;
-        while (fin >> name >> t)
-            run_time[name] = t;
-    }
-
     void printStatus()
     {
         for (const auto &DC : slots)
@@ -137,13 +128,28 @@ struct Graph
                       << std::setprecision(4) << it.second << std::endl;
         }
     }
+
+    void printFinishTimeAvg()
+    {
+        double avg = 0;
+        for (const auto &it : finish_time)
+            avg += it.second;
+        avg /= finish_time.size();
+        double var = 0;
+        for (const auto &it : finish_time)
+            var += (it.second - avg) * (it.second - avg);
+        std::cout << "Average: " << avg << ' '
+                  << "Variance: " << var << std::endl;
+    }
 };
 
 void init_data(shared_ptr<Graph> graph)
 {
     // initailize constraint
     json constraint;
-    std::ifstream constraint_file("./ToyData/constraint.json");
+    std::ifstream constraint_file(DIR + "constraint.json");
+    if (!constraint_file.is_open())
+        printError("No constraint.json!");
     constraint_file >> constraint;
     for (const auto &iter : constraint["constraint"])
     {
@@ -154,9 +160,10 @@ void init_data(shared_ptr<Graph> graph)
 
     // initialize run_time, require and job_task, which job
     json job;
-    std::ifstream job_file("./ToyData/job_list.json");
+    std::ifstream job_file(DIR + "job_list.json");
+    if (!job_file.is_open())
+        printError("No job_list.json");
     job_file >> job;
-
     int num_of_jobs = job["job"].size();
     for (int i = 0; i < num_of_jobs; ++i)
     {
@@ -186,9 +193,10 @@ void init_data(shared_ptr<Graph> graph)
 
     // initialize graph->resources
     json DC;
-    std::ifstream DC_file("./ToyData/DC.json");
+    std::ifstream DC_file(DIR + "DC.json");
+    if (!DC_file.is_open())
+        printError("No DC.json");
     DC_file >> DC;
-
     int num_of_dc = DC["DC"].size();
     for (int i = 0; i < num_of_dc; ++i)
     {
@@ -200,9 +208,10 @@ void init_data(shared_ptr<Graph> graph)
 
     // initialize edges
     json link;
-    std::ifstream link_file("./ToyData/link.json");
+    std::ifstream link_file(DIR + "link.json");
+    if (!link_file.is_open())
+        printError("No link.json");
     link_file >> link;
-
     const double INF = 1e6;
     for (int i = 0; i < num_of_dc; ++i)
     {
@@ -233,7 +242,8 @@ void init_data(shared_ptr<Graph> graph)
                 double d_kj = graph->edges[dc_k][dc_j];
                 double &d_ij = graph->edges[dc_i][dc_j];
 
-                d_ij = std::min(d_ij, d_ik + d_kj);
+                // d_ij = std::min(d_ij, d_ik + d_kj);
+                d_ij = std::min(d_ij, std::max(d_ik, d_kj));
             }
         }
     }

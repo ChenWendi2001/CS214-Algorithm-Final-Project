@@ -16,7 +16,7 @@ int main()
     dag.init(graph);
     scheduler.initGraph(graph);
     sim.updateGraph(graph);
-    sim.printStatus();
+    // sim.printStatus();
     int task_cnt = 0;
     while (!dag.if_finished())
     {
@@ -37,8 +37,9 @@ int main()
         task_cnt += finished.size();
         dag.updateDAG(finished);
     }
-    std::cout << sim.getTime() << "\n";
-    graph->printFinishTime();
-
+    std::cout << "GREEDY: " << sim.getTime() << "\n";
+    graph->printFinishTimeAvg();
+    // graph->printFinishTime();
+    std::cout << std::endl;
     return 0;
 }

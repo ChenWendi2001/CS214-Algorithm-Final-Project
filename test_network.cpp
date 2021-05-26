@@ -96,9 +96,14 @@ int main()
     // std::shuffle(assign_info.begin(),
     //              assign_info.end(),
     //              std::mt19937(time(0)));
-    f.initNetwork(3, 4, task_group,
+    f.sched_type = NetworkSched::FAIR;
+    f.initNetwork(4, task_group,
                   cap_info, assign_info);
 
-    f.getSched();
+    auto ans = f.getSched();
+    for (const auto &it : ans)
+        std::cout << it.first << ' '
+                  << it.second.first << ' '
+                  << it.second.second << std::endl;
     return 0;
 }
