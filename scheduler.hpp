@@ -2,8 +2,7 @@
 #define __SCHEDULER_HPP__
 
 #include "common.hpp"
-#include <queue>
-using std::priority_queue;
+#include "network_sched.hpp"
 
 class Scheduler
 {
@@ -25,7 +24,10 @@ private:
     };
 
     // tasks are available but have not been scheduled
-    unordered_set<string> ready_queue;
+    unordered_set<string> ready_set;
+    // same as ready_set but FIFO
+    //  used by NetworkSched
+    std::queue<string> ready_queue;
 
 private:
     double count_time(const string &task_name,
@@ -52,7 +54,7 @@ private:
                        vector<Arrange>, ArrangeCompare>
             Q;
         // unordered_set<string>::iterator
-        for (const auto &task_iter : ready_queue)
+        for (const auto &task_iter : ready_set)
         {
             // unordered_map<string, pair<int, unordered_set<string>>>::iterator
             for (const auto &slot : graph->slots)
@@ -78,7 +80,7 @@ private:
             string task = assignment.second.second;
             string DC = assignment.second.first;
 
-            if (ready_queue.find(task) != ready_queue.end())
+            if (ready_set.find(task) != ready_set.end())
             {
                 // tasks in ready_queue
                 // int DC_used = used.find(DC) == used.end() ? 0 : used[DC];
@@ -90,7 +92,7 @@ private:
                 {
                     // slots has capacity
                     // arrange successfully
-                    ready_queue.erase(task); // pop from ready_queue
+                    ready_set.erase(task); // pop from ready_queue
                     assignments.push_back(assignment);
                     used[DC]++;
                 }
@@ -119,10 +121,10 @@ private:
         }
 
         vector<Arrange> assignments;
-        while (!ready_queue.empty() &&
+        while (!ready_set.empty() &&
                !available_slot.empty())
         {
-            string task = *ready_queue.begin();
+            string task = *ready_set.begin();
             int DC_index = randInt(0,
                                    available_slot.size() - 1);
             // vector<pair<string, int>>::iterator
@@ -137,16 +139,100 @@ private:
             {
                 available_slot.erase(iter);
             }
-            ready_queue.erase(task);
+            ready_set.erase(task);
         }
         return assignments;
+    }
+
+    // use NetworkSched
+    vector<Arrange> getNetwork()
+    {
+        NetworkSched net;
+
+        // e.g. {{"tA1","tA2"},{"tB1"}}
+        vector<vector<string>> task_group;
+        // e.g. {{"DC1",2}}
+        vector<pair<string, int>> cap_info;
+        // e.g. {{4,{"DC1","tA1"}}}
+        vector<pair<double,
+                    pair<string, string>>>
+            assign_info;
+
+        int slots_cnt = 0;
+        for (const auto &slot : graph->slots)
+        {
+            int cap = slot.second.first -
+                      slot.second.second.size();
+            if (cap > 0)
+                cap_info.emplace_back(
+                    make_pair(slot.first, cap));
+            slots_cnt += cap;
+        }
+
+        // DC is full
+        if (cap_info.empty())
+            return vector<Arrange>();
+
+        // if we can't assign all
+        // let first k tasks be assigned first
+        vector<string> assign_queue;
+        while (!ready_queue.empty() &&
+               slots_cnt--)
+        {
+            assign_queue.push_back(
+                ready_queue.front());
+            ready_queue.pop();
+        }
+
+        for (const auto &task : assign_queue)
+        {
+            for (const auto &slot : graph->slots)
+            {
+                string DC = slot.first;
+                if (slot.second.second.size() <
+                    slot.second.first)
+                {
+                    double ti = count_time(task, slot.first);
+                    assign_info.emplace_back(
+                        make_pair(ti, make_pair(DC, task)));
+                }
+            }
+        }
+
+        // #### todo
+        // same succeed node in same group
+        //  instead of same job
+
+        // initialize task group
+        // tasks in same job belong to same group
+        unordered_map<string, int> job_id;
+        for (const auto &task : assign_queue)
+        {
+            string job = graph->which_job[task];
+            if (job_id.find(job) == job_id.end())
+            {
+                job_id[job] = task_group.size();
+                task_group.push_back({task});
+            }
+            else
+                task_group[job_id[job]].push_back(task);
+        }
+
+        net.sched_type = NetworkSched::FAIR;
+        net.initNetwork(assign_queue.size(),
+                        task_group,
+                        cap_info,
+                        assign_info);
+
+        return std::move(net.getSched());
     }
 
 public:
     enum SchedType
     {
         GREEDY,
-        RANDOM
+        RANDOM,
+        NETWORK
     } sched_type;
 
     void initGraph(shared_ptr<Graph> graph)
@@ -154,38 +240,36 @@ public:
         this->graph = graph;
     }
 
+    int taskSize()
+    {
+        switch (sched_type)
+        {
+        case GREEDY:
+        case RANDOM:
+            return ready_set.size();
+        case NETWORK:
+            return ready_queue.size();
+        }
+    }
+
     // get new tasks from DAG
     void sumbitTasks(unordered_set<string> tasks)
     {
         for (const auto &task : tasks)
         {
-            ready_queue.insert(task);
+            switch (sched_type)
+            {
+            case GREEDY:
+            case RANDOM:
+                ready_set.insert(task);
+                break;
+            case NETWORK:
+                ready_queue.push(task);
+                break;
+            }
         }
         //add task into ready_queue
     }
-
-    // legacy
-    // void sumbitTasks(unordered_set<string> tasks)
-    //{
-    //    for (string each_task : tasks)
-    //    {
-    //        ready_queue.insert(each_task);
-    //        //add task into ready_queue
-    //        for (unordered_map<string, pair<int, unordered_set<string>>>::iterator
-    //                 slot = graph->slots.begin();
-    //             slot != graph->slots.end(); ++slot)
-    //        {
-    //            if ((slot->second).first != 0)
-    //            { //capacity>0
-    //                Arrange this_method;
-    //                this_method.first = count_time(each_task, slot->first);
-    //                this_method.second.second = each_task;
-    //                this_method.second.first = slot->first;
-    //                mapping.push(this_method);
-    //            }
-    //        }
-    //    }
-    //}
 
     // update current resources from simulator
     // schedule tasks to slots
@@ -199,6 +283,8 @@ public:
             return getGreedy();
         case RANDOM:
             return getRandom();
+        case NETWORK:
+            return getNetwork();
         }
     }
 };
