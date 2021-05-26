@@ -38,7 +38,7 @@ int main()
         dag.updateDAG(finished);
     }
     std::cout << "K_GREEDY: " << sim.getTime() << "\n";
-    graph->printStatistics();
+    graph->printStatistics("k_greedy.log");
     graph->printFinishTime("k_greedy.txt");
     graph->printData("k_greedy_data.txt");
     std::cout << std::endl;

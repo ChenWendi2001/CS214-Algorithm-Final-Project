@@ -27,7 +27,7 @@ private:
     unordered_set<string> ready_set;
     // same as ready_set but FIFO
     //  used by NetworkSched
-    std::queue<string> ready_queue;
+    std::deque<string> ready_queue;
 
 private:
     double count_time(const string &task_name,
@@ -191,14 +191,18 @@ private:
             return vector<Arrange>();
 
         // if we can't assign all
+        // randomly shuffle
         // let first k tasks be assigned first
+        std::shuffle(ready_queue.begin(),
+                     ready_queue.end(),
+                     std::mt19937());
         vector<string> assign_queue;
         while (!ready_queue.empty() &&
                slots_cnt--)
         {
             assign_queue.push_back(
                 ready_queue.front());
-            ready_queue.pop();
+            ready_queue.pop_front();
         }
 
         for (const auto &task : assign_queue)
@@ -284,7 +288,7 @@ public:
                 ready_set.insert(task);
                 break;
             case NETWORK:
-                ready_queue.push(task);
+                ready_queue.push_back(task);
                 break;
             }
         }

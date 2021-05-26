@@ -124,6 +124,7 @@ struct Graph
         std::cout << std::endl;
     }
 
+    // output to screen if file_name is empty
     void printFinishTime(string file_name = "")
     {
         // std::sort(finish_time.begin(), finish_time.end());
@@ -167,7 +168,8 @@ struct Graph
         fout.close();
     }
 
-    void printStatistics()
+    // log average time if file_name is not empty
+    void printStatistics(string file_name = "")
     {
         double avg = 0;
         for (const auto &it : finish_time)
@@ -180,6 +182,15 @@ struct Graph
                   << "Standard Deviation: "
                   << std::sqrt(var / finish_time.size())
                   << std::endl;
+        if (!file_name.empty())
+        {
+            std::ofstream fout;
+            fout.open(file_name, std::ios::app);
+            if (!fout.is_open())
+                printWarning("Can't Open Log File");
+            fout << avg << std::endl;
+            fout.close();
+        }
     }
 };
 
