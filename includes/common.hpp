@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <map>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
@@ -19,8 +21,10 @@
 using json = nlohmann::json;
 using std::make_pair;
 using std::make_shared;
+using std::map;
 using std::pair;
 using std::priority_queue;
+using std::set;
 using std::shared_ptr;
 using std::string;
 using std::unordered_map;
@@ -60,7 +64,7 @@ struct Graph
     unordered_map<string, string> which_job;
 
     // job's finish time
-    unordered_map<string, double> finish_time;
+    map<string, double> finish_time;
 
     // task set of each job
     // e.g {"A",{"tA1","tA2"}}
@@ -120,16 +124,50 @@ struct Graph
         std::cout << std::endl;
     }
 
-    void printFinishTime()
+    void printFinishTime(string file_name = "")
     {
-        for (const auto &it : finish_time)
+        // std::sort(finish_time.begin(), finish_time.end());
+        if (file_name.empty())
+            for (const auto &it : finish_time)
+            {
+                std::cout << it.first << ' '
+                          << std::setprecision(4) << it.second << std::endl;
+            }
+        else
         {
-            std::cout << it.first << ' '
-                      << std::setprecision(4) << it.second << std::endl;
+            std::ofstream fout;
+            fout.open(file_name);
+            if (!fout.is_open())
+                printError("Can't Open File in printFinishTime");
+            for (const auto &it : finish_time)
+            {
+                fout << it.first << ' '
+                     << std::setprecision(4) << it.second << std::endl;
+            }
+            fout.close();
         }
     }
 
-    void printFinishTimeAvg()
+    // similar to printFinishTime
+    // but only have time without name
+    // in monotonically increasing order
+    void printData(string file_name)
+    {
+        std::ofstream fout;
+        fout.open(file_name);
+        if (!fout.is_open())
+            printError("Can't Open File in printData");
+        vector<double> times;
+        for (const auto &it : finish_time)
+            times.push_back(it.second);
+        std::sort(times.begin(), times.end());
+        for (const auto &it : times)
+            fout << it << '\n';
+        fout << std::endl;
+        fout.close();
+    }
+
+    void printStatistics()
     {
         double avg = 0;
         for (const auto &it : finish_time)
@@ -138,8 +176,10 @@ struct Graph
         double var = 0;
         for (const auto &it : finish_time)
             var += (it.second - avg) * (it.second - avg);
-        std::cout << "Average: " << avg << ' '
-                  << "Variance: " << var << std::endl;
+        std::cout << "Average: " << avg << '\n'
+                  << "Standard Deviation: "
+                  << std::sqrt(var / finish_time.size())
+                  << std::endl;
     }
 };
 
@@ -157,6 +197,7 @@ void init_data(shared_ptr<Graph> graph)
         graph->constraint.push_back(
             make_pair(iter["start"], iter["end"]));
     }
+    constraint_file.close();
 
     // initialize run_time, require and job_task, which job
     json job;
@@ -190,6 +231,7 @@ void init_data(shared_ptr<Graph> graph)
             }
         }
     }
+    job_file.close();
 
     // initialize graph->resources
     json DC;
@@ -205,6 +247,7 @@ void init_data(shared_ptr<Graph> graph)
         for (int j = 0; j < num_of_resource; ++j)
             graph->resource_loc[this_DC["data"][j]] = this_DC["name"];
     }
+    DC_file.close();
 
     // initialize edges
     json link;
@@ -225,6 +268,7 @@ void init_data(shared_ptr<Graph> graph)
                                      : 1 / double(bandwidth);
         }
     }
+    link_file.close();
 
     // Floyd
     for (int k = 0; k < num_of_dc; ++k)

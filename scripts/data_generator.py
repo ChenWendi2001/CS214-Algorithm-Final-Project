@@ -136,7 +136,7 @@ def generate_job_list(n):
 
 
 def main():
-    data = generate_job_list(25)
+    data = generate_job_list(50)
     generate_DC(data)
 
 

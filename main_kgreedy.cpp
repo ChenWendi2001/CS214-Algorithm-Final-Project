@@ -10,7 +10,7 @@ int main()
     init_data(graph);
     DAG dag;
     Scheduler scheduler;
-    scheduler.sched_type = scheduler.GREEDY;
+    scheduler.sched_type = scheduler.K_GREEDY;
     Simulator sim;
 
     dag.init(graph);
@@ -37,10 +37,10 @@ int main()
         task_cnt += finished.size();
         dag.updateDAG(finished);
     }
-    std::cout << "GREEDY: " << sim.getTime() << "\n";
+    std::cout << "K_GREEDY: " << sim.getTime() << "\n";
     graph->printStatistics();
-    graph->printFinishTime("greedy.txt");
-    graph->printData("greedy_data.txt");
+    graph->printFinishTime("k_greedy.txt");
+    graph->printData("k_greedy_data.txt");
     std::cout << std::endl;
     return 0;
 }

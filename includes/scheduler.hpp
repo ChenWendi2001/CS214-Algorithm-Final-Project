@@ -70,6 +70,12 @@ private:
                 }
             }
         }
+
+        // for K_GREEDY
+        // skip first k choices
+        // (k=0 for normal greedy)
+        unordered_map<string, int> k_val;
+
         vector<Arrange> assignments;
         unordered_map<string, int> used;
         // some slots of graph arranged just now
@@ -90,7 +96,18 @@ private:
 
                 if (slot.first > slot.second.size() + DC_used)
                 {
-                    // slots has capacity
+                    if (sched_type == K_GREEDY)
+                    {
+                        // skip 0~2 choices
+                        if (k_val.find(task) == k_val.end())
+                            k_val[task] = randInt(0, 2);
+                        if (k_val[task] != 0)
+                        {
+                            k_val[task]--;
+                            continue;
+                        }
+                    }
+                    // slots with enough capacity
                     // arrange successfully
                     ready_set.erase(task); // pop from ready_queue
                     assignments.push_back(assignment);
@@ -231,6 +248,7 @@ public:
     enum SchedType
     {
         GREEDY,
+        K_GREEDY,
         RANDOM,
         NETWORK
     } sched_type;
@@ -245,6 +263,7 @@ public:
         switch (sched_type)
         {
         case GREEDY:
+        case K_GREEDY:
         case RANDOM:
             return ready_set.size();
         case NETWORK:
@@ -260,6 +279,7 @@ public:
             switch (sched_type)
             {
             case GREEDY:
+            case K_GREEDY:
             case RANDOM:
                 ready_set.insert(task);
                 break;
@@ -280,6 +300,7 @@ public:
         switch (sched_type)
         {
         case GREEDY:
+        case K_GREEDY:
             return getGreedy();
         case RANDOM:
             return getRandom();

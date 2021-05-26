@@ -68,8 +68,9 @@ int main()
     // schedule cause
     std::cout << "TIME: " << TIME_cnt << ' '
               << "TASK: " << TASK_cnt << std::endl;
-    graph->printFinishTimeAvg();
-    // graph->printFinishTime();
+    graph->printStatistics();
+    graph->printFinishTime("network.txt");
+    graph->printData("network_data.txt");
     std::cout << std::endl;
     return 0;
 }

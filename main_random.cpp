@@ -38,8 +38,9 @@ int main()
         dag.updateDAG(finished);
     }
     std::cout << "RANDOM: " << sim.getTime() << "\n";
-    graph->printFinishTimeAvg();
-    // graph->printFinishTime();
+    graph->printStatistics();
+    graph->printFinishTime("random.txt");
+    graph->printData("random_data.txt");
     std::cout << std::endl;
     return 0;
 }
