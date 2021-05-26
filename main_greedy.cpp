@@ -1,7 +1,7 @@
-#include "common.hpp"
-#include "DAG.hpp"
-#include "scheduler.hpp"
-#include "simulator.hpp"
+#include "includes/common.hpp"
+#include "includes/DAG.hpp"
+#include "includes/scheduler.hpp"
+#include "includes/simulator.hpp"
 
 int main()
 {
