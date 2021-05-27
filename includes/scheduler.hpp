@@ -2,7 +2,8 @@
 #define __SCHEDULER_HPP__
 
 #include "common.hpp"
-#include "network_sched.hpp"
+#include "network_neck.hpp"
+#include "network_sum.hpp"
 
 class Scheduler
 {
@@ -161,10 +162,62 @@ private:
         return assignments;
     }
 
-    // use NetworkSched
-    vector<Arrange> getNetwork()
+    // use NetworkSum
+    vector<Arrange> getNetworkSum()
     {
-        NetworkSched net;
+        NetworkSum net;
+        // e.g. {{"DC1",2}}
+        vector<pair<string, int>> cap_info;
+        // e.g. {{4,{"DC1","tA1"}}}
+        vector<pair<double,
+                    pair<string, string>>>
+            assign_info;
+
+        int slots_cnt = 0;
+        for (const auto &slot : graph->slots)
+        {
+            int cap = slot.second.first -
+                      slot.second.second.size();
+            if (cap > 0)
+                cap_info.emplace_back(
+                    make_pair(slot.first, cap));
+            slots_cnt += cap;
+        }
+
+        // DC is full
+        if (cap_info.empty())
+            return vector<Arrange>();
+
+        for (const auto &task : ready_set)
+        {
+            for (const auto &slot : graph->slots)
+            {
+                string DC = slot.first;
+                if (slot.second.second.size() <
+                    slot.second.first)
+                {
+                    double ti = count_time(task, slot.first);
+                    assign_info.emplace_back(
+                        make_pair(ti, make_pair(DC, task)));
+                }
+            }
+        }
+
+        net.initNetwork(ready_set.size(),
+                        std::min(slots_cnt,
+                                 (int)ready_set.size()),
+                        cap_info,
+                        assign_info);
+        auto assigned = net.getSched();
+        for (const auto &it : assigned)
+            ready_set.erase(it.second.second);
+        return assigned;
+    }
+
+    // use NetworkNeck
+    vector<Arrange> getNetworkNeck()
+    {
+        NetworkNeck net;
 
         // e.g. {{"tA1","tA2"},{"tB1"}}
         vector<vector<string>> task_group;
@@ -239,7 +292,7 @@ private:
                 task_group[job_id[job]].push_back(task);
         }
 
-        net.sched_type = NetworkSched::FAIR;
+        net.sched_type = NetworkNeck::FAIR;
         net.initNetwork(assign_queue.size(),
                         task_group,
                         cap_info,
@@ -254,7 +307,8 @@ public:
         GREEDY,
         K_GREEDY,
         RANDOM,
-        NETWORK
+        NETWORK_SUM,
+        NETWORK_NECK
     } sched_type;
 
     void initGraph(shared_ptr<Graph> graph)
@@ -269,8 +323,9 @@ public:
         case GREEDY:
         case K_GREEDY:
         case RANDOM:
+        case NETWORK_SUM:
             return ready_set.size();
-        case NETWORK:
+        case NETWORK_NECK:
             return ready_queue.size();
         }
     }
@@ -285,9 +340,10 @@ public:
             case GREEDY:
             case K_GREEDY:
             case RANDOM:
+            case NETWORK_SUM:
                 ready_set.insert(task);
                 break;
-            case NETWORK:
+            case NETWORK_NECK:
                 ready_queue.push_back(task);
                 break;
             }
@@ -308,8 +364,10 @@ public:
             return getGreedy();
         case RANDOM:
             return getRandom();
-        case NETWORK:
-            return getNetwork();
+        case NETWORK_NECK:
+            return getNetworkNeck();
+        case NETWORK_SUM:
+            return getNetworkSum();
         }
     }
 };

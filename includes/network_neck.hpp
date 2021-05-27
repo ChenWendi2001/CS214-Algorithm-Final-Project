@@ -1,11 +1,13 @@
 #include "common.hpp"
 
+// NOTE: min{cost} max flow
+
 // when constructing nodes
 // we assign
 //  DC in [0,n-1] (may out of order)
 //  task in [n,n+m-1] (may out of order)
 //  source to n+m, sink to n+m+1
-class NetworkSched
+class NetworkNeck
 {
 private:
     static constexpr double eps = 1e-8;
@@ -415,7 +417,7 @@ public:
         SIMPLE
     } sched_type;
 
-    NetworkSched() : max_val(0) {}
+    NetworkNeck() : max_val(0) {}
 
     // e.g. {{"tA1","tA2"},{"tB2"}} in task_group
     //  tA1 and tA2 belong to same job

@@ -10,7 +10,7 @@ int main()
     init_data(graph);
     DAG dag;
     Scheduler scheduler;
-    scheduler.sched_type = scheduler.NETWORK;
+    scheduler.sched_type = Scheduler::NETWORK_NECK;
     Simulator sim;
 
     dag.init(graph);
@@ -20,8 +20,8 @@ int main()
     int task_cnt = 0;
 
     // 8 tasks or 2 seconds
-    const int TASK_THRESHOLD = 10;
-    const double TIME_THRESHOLD = 1;
+    const int TASK_THRESHOLD = 4;
+    const double TIME_THRESHOLD = 0.2;
     double pre_time = 0;
 
     // schedule causes
@@ -51,7 +51,7 @@ int main()
         }
 
         // sim.forwardTime();
-        sim.tickTime(0.1);
+        sim.tickTime(0.01);
 
         // std::cout << sim.getTime() << "\n";
         auto finished = sim.getFinished();
@@ -64,13 +64,13 @@ int main()
         task_cnt += finished.size();
         dag.updateDAG(finished);
     }
-    std::cout << "NETWORK: " << sim.getTime() << "\n";
+    std::cout << "NETWORK NECK: " << sim.getTime() << "\n";
     // schedule cause
     std::cout << "TIME: " << TIME_cnt << ' '
               << "TASK: " << TASK_cnt << std::endl;
-    graph->printStatistics("network.log");
-    graph->printFinishTime("network.txt");
-    graph->printData("network_data.txt");
+    graph->printStatistics("network_neck.log");
+    graph->printFinishTime("network_neck.txt");
+    graph->printData("network_neck_data.txt");
     std::cout << std::endl;
     return 0;
 }

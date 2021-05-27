@@ -3,7 +3,9 @@
 
 main_random.exe
 main_greedy.exe
+main_networksum.exe
 main_kgreedy.exe
-main_network.exe
+main_networkneck.exe
+
 
 pause&&exit
