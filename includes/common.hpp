@@ -281,6 +281,7 @@ void init_data(shared_ptr<Graph> graph)
     }
     link_file.close();
 
+    // ########## bug inside
     // Floyd
     for (int k = 0; k < num_of_dc; ++k)
     {
@@ -297,8 +298,8 @@ void init_data(shared_ptr<Graph> graph)
                 double d_kj = graph->edges[dc_k][dc_j];
                 double &d_ij = graph->edges[dc_i][dc_j];
 
-                // d_ij = std::min(d_ij, d_ik + d_kj);
-                d_ij = std::min(d_ij, std::max(d_ik, d_kj));
+                d_ij = std::min(d_ij, d_ik + d_kj);
+                // d_ij = std::min(d_ij, std::max(d_ik, d_kj) * 2);
             }
         }
     }
