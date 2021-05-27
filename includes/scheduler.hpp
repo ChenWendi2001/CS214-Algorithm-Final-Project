@@ -272,24 +272,56 @@ private:
                 }
             }
         }
-
-        // #### todo
-        // same succeed node in same group
-        //  instead of same job
-
         // initialize task group
-        // tasks in same job belong to same group
-        unordered_map<string, int> job_id;
-        for (const auto &task : assign_queue)
+        if (neck_type == SAME_TASK)
         {
-            string job = graph->which_job[task];
-            if (job_id.find(job) == job_id.end())
+            // tasks in same job belong to same group
+            unordered_map<string, int> job_id;
+            for (const auto &task : assign_queue)
             {
-                job_id[job] = task_group.size();
-                task_group.push_back({task});
+                string job = graph->which_job[task];
+                if (job_id.find(job) == job_id.end())
+                {
+                    job_id[job] = task_group.size();
+                    task_group.push_back({task});
+                }
+                else
+                    task_group[job_id[job]].push_back(task);
             }
-            else
-                task_group[job_id[job]].push_back(task);
+        }
+
+        if (neck_type == SAME_NEXT)
+        {
+            // tasks with same succeed nodes belong to same group
+            UnionFindSet g;
+            g.init(assign_queue.size());
+            unordered_map<string, int> task_id;
+            for (int i = 0; i < assign_queue.size(); ++i)
+                task_id[assign_queue[i]] = i;
+            for (const auto &task : assign_queue)
+            {
+                // next of this
+                for (const auto &next : graph->next_nodes[task])
+                    // prev of next
+                    for (const auto &prev : graph->prev_nodes[next])
+                        if (task_id.find(prev) != task_id.end())
+                        {
+                            g.unite(task_id[prev], task_id[task]);
+                        }
+            }
+            unordered_map<int, int> group_id;
+            for (int i = 0; i < assign_queue.size(); ++i)
+            {
+                int id = g.find(i);
+                if (group_id.find(id) == group_id.end())
+                {
+                    group_id[id] = task_group.size();
+                    task_group.push_back({assign_queue[i]});
+                }
+                else
+                    task_group[group_id[id]].push_back(
+                        assign_queue[i]);
+            }
         }
 
         net.sched_type = NetworkNeck::FAIR;
@@ -310,6 +342,12 @@ public:
         NETWORK_SUM,
         NETWORK_NECK
     } sched_type;
+
+    enum NeckType
+    {
+        SAME_TASK,
+        SAME_NEXT
+    } neck_type;
 
     void initGraph(shared_ptr<Graph> graph)
     {

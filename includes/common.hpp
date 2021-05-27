@@ -58,6 +58,14 @@ void printWarning(string msg)
 
 struct Graph
 {
+    // e.g. {"tA3",{"tA1","tA2"}}
+    //  tA3 needs the results of tA1 or tA2
+    unordered_map<string, set<string>> prev_nodes;
+
+    // e.g. {"tA1",{"tA3","tA4"}}
+    //  tA3 and tA4 need result of tA1
+    unordered_map<string, set<string>> next_nodes;
+
     // task belongs to which job
     // e.g {"tA1","A"}
     //  "tA1" belongs to "A"
@@ -194,6 +202,29 @@ struct Graph
     }
 };
 
+// union and find set
+// [0,n)
+struct UnionFindSet
+{
+    vector<int> f;
+    void init(int n)
+    {
+        f.resize(n);
+        for (int i = 0; i < n; ++i)
+            f[i] = i;
+    }
+
+    int find(int x)
+    {
+        return f[x] == x ? x : f[x] = find(f[x]);
+    }
+
+    void unite(int u, int v)
+    {
+        f[find(u)] = find(v);
+    }
+};
+
 void init_data(shared_ptr<Graph> graph)
 {
     // initailize constraint
@@ -205,8 +236,13 @@ void init_data(shared_ptr<Graph> graph)
     for (const auto &iter : constraint["constraint"])
     {
         // <string,string>
+        // u->v
+        string prev = iter["start"];
+        string next = iter["end"];
         graph->constraint.push_back(
-            make_pair(iter["start"], iter["end"]));
+            make_pair(prev, next));
+        graph->prev_nodes[next].insert(prev);
+        graph->next_nodes[prev].insert(next);
     }
     constraint_file.close();
 

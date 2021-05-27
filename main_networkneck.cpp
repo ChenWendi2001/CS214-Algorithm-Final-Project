@@ -11,6 +11,7 @@ int main()
     DAG dag;
     Scheduler scheduler;
     scheduler.sched_type = Scheduler::NETWORK_NECK;
+    scheduler.neck_type = Scheduler::SAME_NEXT;
     Simulator sim;
 
     dag.init(graph);
@@ -19,10 +20,14 @@ int main()
     // sim.printStatus();
     int task_cnt = 0;
 
-    // 8 tasks or 2 seconds
-    const int TASK_THRESHOLD = 4;
-    const double TIME_THRESHOLD = 0.2;
+    int TASK_THRESHOLD = 4;
+    double TIME_THRESHOLD = 0.2;
     double pre_time = 0;
+    // read settings from file
+    std::ifstream fin;
+    fin.open("net_neck_settings.txt");
+    if (fin.is_open())
+        fin >> TASK_THRESHOLD >> TIME_THRESHOLD;
 
     // schedule causes
     int TASK_cnt = 0;

@@ -12,7 +12,7 @@ def prob_value(p):
 def generate_DAG(job_id):
     # # of tasks
     # n = random.randint(6, 20)
-    n = max(6, int(random.gauss(20, 5)))
+    n = max(2, int(random.gauss(15, 10)))
     num_of_resource = n + random.randint(0, 3)  # predefined
 
     constraint = []

@@ -19,9 +19,14 @@ int main()
     // sim.printStatus();
     int task_cnt = 0;
 
-    // 8 tasks or 2 seconds
-    const int TASK_THRESHOLD = 4;
-    const double TIME_THRESHOLD = 0.2;
+    int TASK_THRESHOLD = 4;
+    double TIME_THRESHOLD = 0.2;
+    // read settings from file
+    std::ifstream fin;
+    fin.open("net_sum_settings.txt");
+    if (fin.is_open())
+        fin >> TASK_THRESHOLD >> TIME_THRESHOLD;
+
     double pre_time = 0;
 
     // schedule causes

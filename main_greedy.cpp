@@ -25,8 +25,8 @@ int main()
         auto sched = scheduler.getScheduled();
         sim.updateScheduled(sched);
 
-        // sim.forwardTime();
-        sim.tickTime(0.01);
+        sim.forwardTime();
+        // sim.tickTime(0.01);
 
         // std::cout << sim.getTime() << "\n";
         auto finished = sim.getFinished();
