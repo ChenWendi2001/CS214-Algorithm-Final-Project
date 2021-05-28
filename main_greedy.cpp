@@ -81,6 +81,9 @@ int main()
     graph->printFinishTime("greedy.txt");
     // graph->printFinishTime();
     graph->printData("greedy_data.txt");
+
+    graph->printTasks();
+
     std::cout << std::endl;
     return 0;
 }

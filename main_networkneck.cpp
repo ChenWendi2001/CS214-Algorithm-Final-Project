@@ -91,6 +91,9 @@ int main()
     graph->printFinishTime("network_neck.txt");
     // graph->printFinishTime();
     graph->printData("network_neck_data.txt");
+
+    graph->printTasks();
+
     std::cout << std::endl;
     return 0;
 }

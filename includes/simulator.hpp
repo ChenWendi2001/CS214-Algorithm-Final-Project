@@ -112,6 +112,8 @@ public:
             if (tasks.empty())
                 graph->finish_time[job] = finish_time;
 
+            graph->task_span[task] = make_pair(finish_time - graph->run_time[task],
+                                               graph->run_time[task]);
             finish_tasks.emplace_back(make_pair(task, finish_time));
             Q.pop();
         }

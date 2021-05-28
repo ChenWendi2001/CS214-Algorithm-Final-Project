@@ -41,6 +41,9 @@ int main()
     graph->printStatistics("k_greedy.log");
     graph->printFinishTime("k_greedy.txt");
     graph->printData("k_greedy_data.txt");
+
+    graph->printTasks();
+
     std::cout << std::endl;
     return 0;
 }

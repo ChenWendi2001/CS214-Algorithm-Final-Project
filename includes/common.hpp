@@ -72,6 +72,9 @@ struct Graph
     //  "tA1" belongs to "A"
     unordered_map<string, string> which_job;
 
+    // task's (start_time,run_time)
+    map<string, pair<double, double>> task_span;
+
     // job's finish time
     map<string, double> finish_time;
 
@@ -180,9 +183,12 @@ struct Graph
     // log average time if file_name is not empty
     void printStatistics(string file_name = "")
     {
-        double avg = 0;
+        double avg = 0, mx = 0;
         for (const auto &it : finish_time)
+        {
             avg += it.second;
+            mx = std::max(mx, it.second);
+        }
         avg /= finish_time.size();
         double var = 0;
         for (const auto &it : finish_time)
@@ -197,9 +203,25 @@ struct Graph
             fout.open(file_name, std::ios::app);
             if (!fout.is_open())
                 printWarning("Can't Open Log File");
-            fout << avg << std::endl;
+            fout << mx << ','
+                 << avg << ','
+                 << std::sqrt(var / finish_time.size()) << std::endl;
             fout.close();
         }
+    }
+
+    // print tasks' span
+    void printTasks()
+    {
+        std::ofstream fout;
+        fout.open("tasks.csv");
+        for (const auto &it : task_span)
+        {
+            fout << it.first << ','
+                 << it.second.first << ','
+                 << it.second.second << std::endl;
+        }
+        fout.close();
     }
 };
 
