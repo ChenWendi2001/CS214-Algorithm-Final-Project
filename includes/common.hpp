@@ -34,6 +34,7 @@ using std::vector;
 // data directory
 // static const string DIR = "./ToyData/";
 static const string DIR = "./";
+// static const string DIR = "./scripts/";
 
 // uniformly random int in [mn, mx]
 int randInt(int mn, int mx)
@@ -317,7 +318,6 @@ void init_data(shared_ptr<Graph> graph)
     }
     link_file.close();
 
-    // ########## bug inside
     // Floyd
     for (int k = 0; k < num_of_dc; ++k)
     {
@@ -334,8 +334,9 @@ void init_data(shared_ptr<Graph> graph)
                 double d_kj = graph->edges[dc_k][dc_j];
                 double &d_ij = graph->edges[dc_i][dc_j];
 
-                d_ij = std::min(d_ij, d_ik + d_kj);
-                // d_ij = std::min(d_ij, std::max(d_ik, d_kj) * 2);
+                // #### modify this to change bandwidth
+                // d_ij = std::min(d_ij, d_ik + d_kj);
+                d_ij = std::min(d_ij, std::max(d_ik, d_kj));
             }
         }
     }

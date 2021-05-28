@@ -165,7 +165,7 @@ private:
     // use NetworkSum
     vector<Arrange> getNetworkSum()
     {
-        NetworkSum net;
+        NetworkSum net_sum;
         // e.g. {{"DC1",2}}
         vector<pair<string, int>> cap_info;
         // e.g. {{4,{"DC1","tA1"}}}
@@ -203,12 +203,12 @@ private:
             }
         }
 
-        net.initNetwork(ready_set.size(),
-                        std::min(slots_cnt,
-                                 (int)ready_set.size()),
-                        cap_info,
-                        assign_info);
-        auto assigned = net.getSched();
+        net_sum.initNetwork(ready_set.size(),
+                            std::min(slots_cnt,
+                                     (int)ready_set.size()),
+                            cap_info,
+                            assign_info);
+        auto assigned = net_sum.getSched();
         for (const auto &it : assigned)
             ready_set.erase(it.second.second);
         return assigned;
@@ -217,7 +217,8 @@ private:
     // use NetworkNeck
     vector<Arrange> getNetworkNeck()
     {
-        NetworkNeck net;
+        NetworkNeck net_neck;
+        NetworkSum net_sum;
 
         // e.g. {{"tA1","tA2"},{"tB1"}}
         vector<vector<string>> task_group;
@@ -243,22 +244,7 @@ private:
         if (cap_info.empty())
             return vector<Arrange>();
 
-        // if we can't assign all
-        // randomly shuffle
-        // let first k tasks be assigned first
-        std::shuffle(ready_queue.begin(),
-                     ready_queue.end(),
-                     std::mt19937());
-        vector<string> assign_queue;
-        while (!ready_queue.empty() &&
-               slots_cnt--)
-        {
-            assign_queue.push_back(
-                ready_queue.front());
-            ready_queue.pop_front();
-        }
-
-        for (const auto &task : assign_queue)
+        for (const auto &task : ready_set)
         {
             for (const auto &slot : graph->slots)
             {
@@ -267,6 +253,33 @@ private:
                     slot.second.first)
                 {
                     double ti = count_time(task, slot.first);
+                    assign_info.emplace_back(
+                        make_pair(ti, make_pair(DC, task)));
+                }
+            }
+        }
+
+        net_sum.initNetwork(ready_set.size(),
+                            std::min(slots_cnt,
+                                     (int)ready_set.size()),
+                            cap_info,
+                            assign_info);
+        auto assigned = net_sum.getSched();
+        vector<string> assign_queue;
+        for (const auto &it : assigned)
+            assign_queue.push_back(it.second.second);
+
+        assign_info.clear();
+        for (const auto &task : assign_queue)
+        {
+            for (const auto &slot : graph->slots)
+            {
+                string DC = slot.first;
+                if (slot.second.second.size() <
+                    slot.second.first)
+                {
+                    double ti = count_time(task, slot.first) +
+                                graph->run_time[task];
                     assign_info.emplace_back(
                         make_pair(ti, make_pair(DC, task)));
                 }
@@ -324,13 +337,20 @@ private:
             }
         }
 
-        net.sched_type = NetworkNeck::FAIR;
-        net.initNetwork(assign_queue.size(),
-                        task_group,
-                        cap_info,
-                        assign_info);
+        net_neck.sched_type = NetworkNeck::FAIR;
+        net_neck.initNetwork(assign_queue.size(),
+                             task_group,
+                             cap_info,
+                             assign_info);
 
-        return std::move(net.getSched());
+        assigned = net_neck.getSched();
+        for (auto &it : assigned)
+        {
+            string task = it.second.second;
+            it.first -= graph->run_time[task];
+            ready_set.erase(task);
+        }
+        return assigned;
     }
 
 public:
@@ -362,9 +382,10 @@ public:
         case K_GREEDY:
         case RANDOM:
         case NETWORK_SUM:
-            return ready_set.size();
         case NETWORK_NECK:
-            return ready_queue.size();
+            return ready_set.size();
+            // case NETWORK_NECK:
+            // return ready_queue.size();
         }
     }
 
@@ -379,11 +400,12 @@ public:
             case K_GREEDY:
             case RANDOM:
             case NETWORK_SUM:
+            case NETWORK_NECK:
                 ready_set.insert(task);
                 break;
-            case NETWORK_NECK:
-                ready_queue.push_back(task);
-                break;
+                // case NETWORK_NECK:
+                //     ready_queue.push_back(task);
+                //     break;
             }
         }
         //add task into ready_queue

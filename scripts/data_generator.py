@@ -12,7 +12,12 @@ def prob_value(p):
 def generate_DAG(job_id):
     # # of tasks
     # n = random.randint(6, 20)
-    n = max(2, int(random.gauss(15, 10)))
+    short_or_long = random.randint(1, 10)
+    n = 0
+    if short_or_long <= 8:
+        n = max(2, int(random.gauss(4, 5)))
+    else:
+        n = max(10, int(random.gauss(20, 10)))
     num_of_resource = n + random.randint(0, 3)  # predefined
 
     constraint = []
@@ -53,7 +58,7 @@ def generate_DAG(job_id):
         task_list.append({
             "name": job_id + "_task" + str(i),
             "resource": [],
-            "time": max(2, random.gauss(5, 2))
+            "time": max(1, random.gauss(3, 2))
         })
         local_resource = []
         num_of_local_resource = random.randint(2, min(num_of_resource, i + 1))
@@ -65,7 +70,7 @@ def generate_DAG(job_id):
                     "name":
                     resource[r],
                     "size":
-                    random.randint(50, 300)
+                    max(random.gauss(400, 400), 50)
                 })
 
     for e in edges:
@@ -96,8 +101,11 @@ def generate_DC(data):
             "size": DC_slot_size[i],
             "data": []
         })
-    for d in data:
-        DC["DC"][random.randint(0, 12)]["data"].append(d)
+    dc = random.randint(0, 12)
+    for i, d in enumerate(data):
+        if i % 4 == 3:
+            dc = random.randint(0, 12)
+        DC["DC"][dc]["data"].append(d)
     DC_json = json.dumps(DC, sort_keys=True, indent=4, separators=(',', ': '))
     with open('DC.json', 'w') as f:
         f.write(DC_json)

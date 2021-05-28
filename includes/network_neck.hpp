@@ -74,6 +74,7 @@ private:
     vector<Edge> edges;
     // current edge optimization
     vector<int> cur_head;
+    vector<int> prev;
     // <----- Dinic end
 
     // task group scheduling
@@ -114,6 +115,7 @@ private:
     {
         // initialize head with -1
         head = vector<int>(2 + DC_num + task_num, -1);
+        prev = vector<int>(2 + DC_num + task_num);
 
         // link source to DC
         for (const auto &it : cap_info)
@@ -365,6 +367,76 @@ private:
         }
     }
 
+    // set edges with 0 val to ori val
+    // may assign tasks to DC with high bandwidth
+    void resetEdges()
+    {
+        for (auto &edge : edges)
+            if (edge.val < eps)
+                edge.val = edge.ori_val;
+    }
+
+    // use SPFA to find augmenting path
+    int SPFA()
+    {
+        // cost
+        vector<double> dis(2 + DC_num + task_num,
+                           std::numeric_limits<double>::max());
+        // capacity
+        vector<int> cap(2 + DC_num + task_num, 0);
+        vector<bool> inq(2 + DC_num + task_num, false);
+        std::queue<int> Q;
+
+        dis[source] = 0;
+        cap[source] = std::numeric_limits<int>::max();
+        inq[source] = true;
+        Q.push(source);
+
+        while (!Q.empty())
+        {
+            int x = Q.front();
+            Q.pop(), inq[x] = false;
+            for (int i = head[x]; ~i; i = edges[i].next)
+            {
+                int to = edges[i].v;
+                double cost = edges[i].val;
+                if (edges[i].cap > 0 &&
+                    dis[x] + cost < dis[to])
+                {
+                    dis[to] = dis[x] + cost;
+                    prev[to] = i; // edge id
+                    cap[to] = std::min(cap[x], edges[i].cap);
+                    if (!inq[to])
+                        Q.push(to), inq[to] = true;
+                }
+            }
+        }
+        return cap[sink];
+    }
+
+    // update path
+    void updateEdge(int flow)
+    {
+        for (int i = sink; i != source;
+             i = edges[prev[i] ^ 1].v)
+        {
+            edges[prev[i]].cap -= flow;
+            edges[prev[i] ^ 1].cap += flow;
+        }
+    }
+
+    // min cost sum max flow
+    int MCMF()
+    {
+        int ret = 0, new_flow;
+        while (new_flow = SPFA())
+        {
+            ret += new_flow;
+            updateEdge(new_flow);
+        }
+        return ret;
+    }
+
     // main function schedule all tasks
     void scheduleFair()
     {
@@ -392,6 +464,10 @@ private:
 
             findBottelneck(val_bound);
         }
+        // after find all bottlenecks
+        // find min cost sum for remaining tasks
+        resetEdges();
+        MCMF();
 
         // assign rest tasks
         readSched();

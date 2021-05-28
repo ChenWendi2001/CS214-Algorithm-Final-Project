@@ -53,6 +53,17 @@ int main()
             pre_time = sim.getTime();
             auto sched = scheduler.getScheduled();
             sim.updateScheduled(sched);
+
+            // if (!sched.empty())
+            // {
+            //     std::cout << sim.getTime() << std::endl;
+            //     for (const auto &it : sched)
+            //         std::cout << it.first << ' '
+            //                   << it.second.first << ' '
+            //                   << it.second.second << '\n';
+            //     std::cout << '\n'
+            //               << std::endl;
+            // }
         }
 
         // sim.forwardTime();
@@ -62,9 +73,12 @@ int main()
         auto finished = sim.getFinished();
         // sim.printStatus();
 
-        // for (const auto &it : finished)
-        //     std::cout << it.first << ' ';
-        // std::cout << std::endl;
+        // if (!finished.empty())
+        // {
+        //     for (const auto &it : finished)
+        //         std::cout << it.first << ' ';
+        //     std::cout << std::endl;
+        // }
 
         task_cnt += finished.size();
         dag.updateDAG(finished);
@@ -75,6 +89,7 @@ int main()
               << "TASK: " << TASK_cnt << std::endl;
     graph->printStatistics("network_neck.log");
     graph->printFinishTime("network_neck.txt");
+    // graph->printFinishTime();
     graph->printData("network_neck_data.txt");
     std::cout << std::endl;
     return 0;
